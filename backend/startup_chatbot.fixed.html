@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>창업 지원 AI 어시스턴트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background: #1a1d2e;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #16192b;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .category {
+            margin-bottom: 24px;
+        }
+
+        .category-title {
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .category-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .category-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .stats {
+            margin-top: auto;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* 서버 상태 표시 */
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+        }
+
+        .status-dot.online {
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #f87171;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1a1d2e;
+        }
+
+        .chat-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h2 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+
+        .avatar.bot {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .avatar.user {
+            background: #2d3142;
+            color: #667eea;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: normal; word-wrap: break-word;
+        }
+
+        .message.bot .message-content {
+            background: #252a3d;
+            color: #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* 상태 배지 */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .status-badge.internal-rag {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .status-badge.web-search {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .status-badge.fallback {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .quick-replies {
+            display: flex;
+            gap: 12px;
+            padding: 0 32px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .quick-reply {
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-reply:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .input-area {
+            padding: 24px 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            background: #252a3d;
+            border-radius: 16px;
+            padding: 12px 20px;
+            align-items: center;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #666;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 16px 20px;
+            background: #252a3d;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* 에러 메시지 스타일 */
+        .error-message {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🚀</div>
+                <div class="logo-text">
+                    <h1>Startup AI</h1>
+                    <p>창업 지원 어시스턴트</p>
+                </div>
+            </div>
+
+            <div class="category">
+                <div class="category-title">📂 카테고리</div>
+                <div class="category-item active" data-query="">💡 전체</div>
+                <div class="category-item" data-query="지원사업 추천해줘">💰 지원사업</div>
+                <div class="category-item" data-query="창업 공간 정보 알려줘">🏢 창업 공간</div>
+                <div class="category-item" data-query="창업자 자격요건이 뭔가요?">📋 법령/제도</div>
+                <div class="category-item" data-query="창업 실패 사례와 교훈">📚 사례 분석</div>
+            </div>
+
+            <div class="category">
+                <div class="category-title">🎯 인기 질문</div>
+                <div class="category-item" data-query="서울에서 AI 창업 지원사업 추천해줘">서울 AI 창업</div>
+                <div class="category-item" data-query="초기창업패키지 신청 방법 알려줘">초기창업패키지</div>
+                <div class="category-item" data-query="창업자의 정의가 뭔가요?">창업 자격</div>
+                <div class="category-item" data-query="창업 공간 입주하려면 어떻게 해야 하나요?">입주 신청</div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">📊 총 지원사업: 1,234개</div>
+                <div class="stat-item">🏢 창업 공간: 567개</div>
+                <div class="server-status">
+                    <div class="status-dot" id="serverStatus"></div>
+                    <span class="status-text" id="serverStatusText">서버 확인 중...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-chat">
+            <div class="chat-header">
+                <div class="header-title">
+                    <h2>창업 지원 AI 어시스턴트</h2>
+                </div>
+                <div class="header-actions">
+                    <button class="action-btn" onclick="newChat()" title="새 대화">🔄</button>
+                    <button class="action-btn" onclick="showSettings()" title="설정">⚙️</button>
+                </div>
+            </div>
+
+            <div class="messages" id="messages">
+                <div class="message bot">
+                    <div class="avatar bot">🤖</div>
+                    <div class="message-content">
+안녕하세요! 창업 지원 AI 어시스턴트입니다. 😊<br><br>
+저는 다음과 같은 정보를 제공할 수 있어요:<br><br>
+• 지원사업 추천 및 안내<br>
+• 창업 공간 정보<br>
+• 법령 및 제도 설명<br>
+• 창업 성공 전략<br><br>
+어떤 것이 궁금하신가요?
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-replies">
+                <div class="quick-reply" onclick="quickReply('서울에서 AI 챗봇 창업을 하려고 하는데 받을 수 있는 지원사업 있나요?')">
+                    💰 지원사업 추천
+                </div>
+                <div class="quick-reply" onclick="quickReply('창업자의 정의가 뭔가요?')">
+                    📋 법령 확인
+                </div>
+                <div class="quick-reply" onclick="quickReply('창업 공간은 어디서 찾나요?')">
+                    🏢 공간 찾기
+                </div>
+                <div class="quick-reply" onclick="quickReply('판매가 저조할 때 어떻게 하나요?')">
+                    💡 성공 팁
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        id="userInput" 
+                        placeholder="창업에 대해 무엇이든 물어보세요..."
+                        onkeypress="if(event.key==='Enter') sendMessage()"
+                    >
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 설정
+        // ========================================
+        const API_BASE_URL = 'http://localhost:8000';  // 브라우저에서 접근 가능한 주소
+        let isProcessing = false;
+
+        // ========================================
+        // 서버 상태 확인
+        // ========================================
+        async function checkServerStatus() {
+            const statusDot = document.getElementById('serverStatus');
+            const statusText = document.getElementById('serverStatusText');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    statusDot.classList.add('online');
+                    statusDot.classList.remove('offline');
+                    statusText.textContent = '서버 연결됨';
+                    return true;
+                }
+            } catch (error) {
+                console.error('서버 연결 실패:', error);
+            }
+            
+            statusDot.classList.add('offline');
+            statusDot.classList.remove('online');
+            statusText.textContent = '서버 연결 안됨';
+            return false;
+        }
+
+        // 페이지 로드 시 서버 상태 확인
+        window.addEventListener('load', () => {
+            checkServerStatus();
+            // 30초마다 서버 상태 확인
+            setInterval(checkServerStatus, 30000);
+        });
+
+        // ========================================
+        // 메시지 전송
+        // ========================================
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            // 서버 상태 확인
+            const serverOnline = await checkServerStatus();
+            if (!serverOnline) {
+                addErrorMessage('서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+                return;
+            }
+            
+            input.value = '';
+            isProcessing = true;
+            sendBtn.disabled = true;
+            
+            // 사용자 메시지 표시
+            addMessage(message, 'user');
+            
+            // 타이핑 인디케이터 표시
+            showTypingIndicator();
+            
+            try {
+                // API 호출
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: message })
+                });
+                
+                removeTypingIndicator();
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 봇 응답 표시
+                addMessage(data.answer, 'bot', data.source_type);
+                
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('API 오류:', error);
+                addErrorMessage(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        // ========================================
+        // 메시지 추가
+        // ========================================
+        function addMessage(content, type = 'bot', sourceType = null) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `avatar ${type}`;
+            avatarDiv.textContent = type === 'bot' ? '🤖' : '👤';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            // 마크다운 스타일 변환 (간단한 버전)
+            let formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            contentDiv.innerHTML = formattedContent;
+            
+            // 소스 타입 배지 추가
+            if (sourceType && type === 'bot') {
+                const badge = document.createElement('div');
+                badge.className = `status-badge ${sourceType}`;
+                
+                const badgeText = {
+                    'internal-rag': '📚 내부 문서',
+                    'web-search': '🌐 웹 검색',
+                    'fallback': '💭 AI 지식'
+                };
+                
+                badge.textContent = badgeText[sourceType] || sourceType;
+                contentDiv.appendChild(badge);
+            }
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            // 스크롤 맨 아래로
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // ========================================
+        // 에러 메시지 추가
+        // ========================================
+        function addErrorMessage(text) {
+            const messagesDiv = document.getElementById('messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message bot';
+            errorDiv.innerHTML = `
+                <div class="avatar bot">⚠️</div>
+                <div class="message-content">
+                    <div class="error-message">${text}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(errorDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // ========================================
+        // 타이핑 인디케이터
+        // ========================================
+        function showTypingIndicator() {
+            const messagesDiv = document.getElementById('messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = `
+                <div class="avatar bot">🤖</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            messagesDiv.appendChild(typingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        // ========================================
+        // 빠른 답변
+        // ========================================
+        function quickReply(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        // ========================================
+        // 새 대화
+        // ========================================
+        function newChat() {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `
+                <div class="message bot">
+                    <div class="avatar bot">🤖</div>
+                    <div class="message-content">
+                        새로운 대화를 시작합니다! 무엇을 도와드릴까요? 😊
+                    </div>
+                </div>
+            `;
+        }
+
+        // ========================================
+        // 설정 (추후 구현)
+        // ========================================
+        function showSettings() {
+            alert('설정 기능은 준비 중입니다.');
+        }
+
+        // ========================================
+        // 카테고리 아이템 클릭
+        // ========================================
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.category-item').forEach(i => 
+                    i.classList.remove('active')
+                );
+                item.classList.add('active');
+                
+                if (item.dataset.query) {
+                    document.getElementById('userInput').value = item.dataset.query;
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

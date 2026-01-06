@@ -1,0 +1,1684 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Code: rag_base_multi_web.py</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background-color: #f8f9fa;
+            line-height: 1.4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .code-container {
+            background-color: #f1f2f6;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .line {
+            margin: 2px 0;
+            padding: 2px 5px;
+            border-left: 3px solid transparent;
+        }
+        .line-number {
+            color: #666;
+            margin-right: 15px;
+            user-select: none;
+            display: inline-block;
+            width: 50px;
+            text-align: right;
+        }
+        .code-content {
+            color: #2c3e50;
+        }
+        .comment { color: #27ae60; }
+        .string { color: #e74c3c; }
+        .keyword { color: #8e44ad; font-weight: bold; }
+        .import { color: #3498db; font-weight: bold; }
+        .function { color: #f39c12; font-weight: bold; }
+        .class { color: #e67e22; font-weight: bold; }
+        
+        @media print {
+            body { 
+                background-color: white; 
+                font-size: 10pt;
+            }
+            .container { 
+                box-shadow: none; 
+                margin: 0;
+                padding: 10px;
+            }
+            .line {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Python Code: rag_base_multi_web.py</h1>
+        <div class="code-container">
+            <div class="line">
+                <span class="line-number">   1</span>
+                <span class="code-content"><span class="import">import&nbsp;os</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   2</span>
+                <span class="code-content"><span class="import">import&nbsp;warnings</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   3</span>
+                <span class="code-content"><span class="import">from&nbsp;dotenv&nbsp;import&nbsp;load_dotenv</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   4</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   5</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_openai&nbsp;import&nbsp;OpenAIEmbeddings,&nbsp;ChatOpenAI</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   6</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_chroma&nbsp;import&nbsp;Chroma</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   7</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_core.prompts&nbsp;import&nbsp;ChatPromptTemplate</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   8</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_core.output_parsers&nbsp;import&nbsp;StrOutputParser</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">   9</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_community.retrievers&nbsp;import&nbsp;TavilySearchAPIRetriever</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  10</span>
+                <span class="code-content"><span class="import">from&nbsp;langchain_core.documents&nbsp;import&nbsp;Document</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  11</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  12</span>
+                <span class="code-content">warnings.filterwarnings("ignore")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  13</span>
+                <span class="code-content">load_dotenv()</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  14</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  15</span>
+                <span class="code-content">api_key&nbsp;=&nbsp;os.getenv("OPENAI_API_KEY")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  16</span>
+                <span class="code-content"><span class="keyword">if&nbsp;not&nbsp;api_key:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  17</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;raise&nbsp;ValueError("OPENAI_API_KEY&nbsp;없음!&nbsp;.env&nbsp;확인해줘")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  18</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  19</span>
+                <span class="code-content">TAVILY_API_KEY&nbsp;=&nbsp;os.getenv("TAVILY_API_KEY")&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  20</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  21</span>
+                <span class="code-content"><span class="comment">#&nbsp;벡터DB&nbsp;로드</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  22</span>
+                <span class="code-content">embedding_model&nbsp;=&nbsp;OpenAIEmbeddings(model="text-embedding-3-small")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  23</span>
+                <span class="code-content">vectorstore&nbsp;=&nbsp;Chroma(</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  24</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;persist_directory="./chroma_startup_all",</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  25</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;collection_name="startup_all_rag",</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  26</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;embedding_function=embedding_model,</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  27</span>
+                <span class="code-content">)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  28</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  29</span>
+                <span class="code-content"><span class="keyword">try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  30</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;all_data&nbsp;=&nbsp;vectorstore.get()</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  31</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;ids&nbsp;=&nbsp;all_data.get("ids",&nbsp;[])</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  32</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"✅&nbsp;벡터DB&nbsp;로드&nbsp;완료&nbsp;/&nbsp;총&nbsp;벡터&nbsp;개수:&nbsp;{len(ids)}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  33</span>
+                <span class="code-content"><span class="keyword">except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  34</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print("⚠&nbsp;벡터DB&nbsp;상태&nbsp;확인&nbsp;중&nbsp;에러:",&nbsp;e)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  35</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  36</span>
+                <span class="code-content"><span class="comment">#&nbsp;LLM</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  37</span>
+                <span class="code-content">llm&nbsp;=&nbsp;ChatOpenAI(model="gpt-4o-mini",&nbsp;temperature=0)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  38</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  39</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  40</span>
+                <span class="code-content"><span class="comment">#&nbsp;프롬프트&nbsp;정의</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  41</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  42</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  43</span>
+                <span class="code-content"><span class="comment">#&nbsp;관련성&nbsp;검증&nbsp;프롬프트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  44</span>
+                <span class="code-content"><span class="import">relevance_check_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_template("""</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  45</span>
+                <span class="code-content">당신은&nbsp;문서와&nbsp;질문의&nbsp;관련성을&nbsp;엄격하게&nbsp;판단하는&nbsp;전문가입니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  46</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  47</span>
+                <span class="code-content">[질문]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  48</span>
+                <span class="code-content">{question}</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  49</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  50</span>
+                <span class="code-content">[검색된&nbsp;문서&nbsp;샘플]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  51</span>
+                <span class="code-content">{documents}</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  52</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  53</span>
+                <span class="code-content">[판단&nbsp;기준]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  54</span>
+                <span class="code-content">1.&nbsp;질문의&nbsp;핵심&nbsp;주제와&nbsp;문서의&nbsp;내용이&nbsp;직접적으로&nbsp;관련되는가?</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  55</span>
+                <span class="code-content">2.&nbsp;문서가&nbsp;질문에&nbsp;대한&nbsp;구체적인&nbsp;정보를&nbsp;제공하는가?</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  56</span>
+                <span class="code-content">3.&nbsp;단순히&nbsp;유사한&nbsp;단어가&nbsp;있는&nbsp;것이&nbsp;아니라,&nbsp;실제&nbsp;답변&nbsp;가능한&nbsp;내용인가?</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  57</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  58</span>
+                <span class="code-content">[예시]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  59</span>
+                <span class="code-content">-&nbsp;"서울&nbsp;동물병원"&nbsp;vs&nbsp;"서울&nbsp;창업&nbsp;공간"&nbsp;→&nbsp;관련없음&nbsp;(서울만&nbsp;공통)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  60</span>
+                <span class="code-content">-&nbsp;"AI&nbsp;교육"&nbsp;vs&nbsp;"창업&nbsp;교육"&nbsp;→&nbsp;관련없음&nbsp;(교육만&nbsp;공통,&nbsp;주제&nbsp;다름)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  61</span>
+                <span class="code-content">-&nbsp;"창업&nbsp;지원사업"&nbsp;vs&nbsp;"창업&nbsp;자금&nbsp;지원"&nbsp;→&nbsp;관련있음&nbsp;(직접&nbsp;연관)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  62</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  63</span>
+                <span class="code-content">다음&nbsp;중&nbsp;하나로만&nbsp;답변:&nbsp;"관련있음"&nbsp;또는&nbsp;"관련없음"</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  64</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  65</span>
+                <span class="code-content">답변:""")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  66</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  67</span>
+                <span class="code-content"><span class="comment">#&nbsp;Query&nbsp;Transformation</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  68</span>
+                <span class="code-content"><span class="import">qt_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_template("""</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  69</span>
+                <span class="code-content">다음&nbsp;사용자&nbsp;질문을&nbsp;벡터&nbsp;검색에&nbsp;적합한&nbsp;'핵심&nbsp;키워드&nbsp;중심&nbsp;문장'으로&nbsp;바꾸세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  70</span>
+                <span class="code-content">불필요한&nbsp;말은&nbsp;제거하고,&nbsp;핵심&nbsp;조건만&nbsp;남기세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  71</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  72</span>
+                <span class="code-content">원본&nbsp;질문:&nbsp;{question}</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  73</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  74</span>
+                <span class="code-content">변환된&nbsp;검색용&nbsp;문장:""")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  75</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  76</span>
+                <span class="code-content"><span class="comment">#&nbsp;멀티쿼리&nbsp;생성</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  77</span>
+                <span class="code-content"><span class="import">multi_query_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_template("""</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  78</span>
+                <span class="code-content">다음질문에&nbsp;대해&nbsp;3가지&nbsp;다른&nbsp;관점의&nbsp;검색&nbsp;쿼리를&nbsp;생성하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  79</span>
+                <span class="code-content">각쿼리는&nbsp;세&nbsp;줄로&nbsp;구분하여&nbsp;출력하세요&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  80</span>
+                <span class="code-content">번호나&nbsp;설명&nbsp;없이&nbsp;쿼리만&nbsp;출력하세요</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  81</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  82</span>
+                <span class="code-content">원본질문:&nbsp;{question}""")</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  83</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  84</span>
+                <span class="code-content"><span class="comment">#&nbsp;기본&nbsp;RAG&nbsp;프롬프트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  85</span>
+                <span class="code-content"><span class="import">rag_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_messages([</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  86</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("system",&nbsp;"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  87</span>
+                <span class="code-content">당신은&nbsp;예비·초기&nbsp;창업자를&nbsp;도와주는&nbsp;'창업&nbsp;지원&nbsp;통합&nbsp;AI&nbsp;어시스턴트'입니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  88</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  89</span>
+                <span class="code-content">[사용&nbsp;가능한&nbsp;정보&nbsp;유형]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  90</span>
+                <span class="code-content">-&nbsp;지원사업&nbsp;공고&nbsp;(announcement)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  91</span>
+                <span class="code-content">-&nbsp;실패/재도전&nbsp;사례&nbsp;(cases)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  92</span>
+                <span class="code-content">-&nbsp;창업&nbsp;공간&nbsp;정보&nbsp;(space)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  93</span>
+                <span class="code-content">-&nbsp;법령:&nbsp;중소기업창업&nbsp;지원법&nbsp;등&nbsp;(law)</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  94</span>
+                <span class="code-content">-&nbsp;통계,&nbsp;매뉴얼&nbsp;등&nbsp;참고&nbsp;자료</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  95</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number">  96</span>
+                <span class="code-content">[답변&nbsp;원칙]</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  97</span>
+                <span class="code-content">1.&nbsp;반드시&nbsp;제공된&nbsp;문맥(Context)&nbsp;안의&nbsp;정보만&nbsp;사용하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  98</span>
+                <span class="code-content">2.&nbsp;문맥에&nbsp;없는&nbsp;내용은&nbsp;추측하지&nbsp;말고&nbsp;솔직하게&nbsp;말하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number">  99</span>
+                <span class="code-content">3.&nbsp;질문&nbsp;성격에&nbsp;따라&nbsp;다음&nbsp;정보&nbsp;유형을&nbsp;우선&nbsp;활용하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 100</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;-&nbsp;지원사업·신청&nbsp;가능&nbsp;여부&nbsp;→&nbsp;announcement</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 101</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;-&nbsp;법적&nbsp;정의·자격&nbsp;요건&nbsp;→&nbsp;law</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 102</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;-&nbsp;조언·주의점&nbsp;→&nbsp;cases</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 103</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;-&nbsp;공간·입주&nbsp;→&nbsp;space</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 104</span>
+                <span class="code-content">4.&nbsp;핵심&nbsp;답변&nbsp;후&nbsp;필요하면&nbsp;bullet로&nbsp;정리하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 105</span>
+                <span class="code-content">5.&nbsp;마지막에&nbsp;참고&nbsp;근거&nbsp;유형을&nbsp;요약하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 106</span>
+                <span class="code-content">"""),</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 107</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("human",&nbsp;"[문맥]\n{context}\n\n[질문]\n{question}\n\n[답변]")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 108</span>
+                <span class="code-content">])</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 109</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 110</span>
+                <span class="code-content"><span class="comment">#&nbsp;법령&nbsp;전용&nbsp;프롬프트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 111</span>
+                <span class="code-content"><span class="import">law_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_messages([</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 112</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("system",&nbsp;"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 113</span>
+                <span class="code-content">당신은&nbsp;중소기업창업&nbsp;지원법을&nbsp;바탕으로&nbsp;창업&nbsp;제도와&nbsp;요건을&nbsp;설명하는&nbsp;AI입니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 114</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 115</span>
+                <span class="code-content">[규칙]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 116</span>
+                <span class="code-content">1.&nbsp;반드시&nbsp;문맥에&nbsp;있는&nbsp;법령&nbsp;내용만&nbsp;사용하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 117</span>
+                <span class="code-content">2.&nbsp;가능하면&nbsp;조문&nbsp;번호(제○조)를&nbsp;함께&nbsp;제시하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 118</span>
+                <span class="code-content">3.&nbsp;문맥에&nbsp;없는&nbsp;내용은&nbsp;"제공된&nbsp;법령&nbsp;문서에서&nbsp;해당&nbsp;내용은&nbsp;확인되지&nbsp;않습니다."라고&nbsp;답하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 119</span>
+                <span class="code-content">4.&nbsp;답변&nbsp;끝에&nbsp;"※&nbsp;본&nbsp;답변은&nbsp;일반&nbsp;정보&nbsp;제공이며,&nbsp;구체적인&nbsp;법률&nbsp;자문은&nbsp;아닙니다."를&nbsp;포함하세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 120</span>
+                <span class="code-content">"""),</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 121</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("human",&nbsp;"[법령&nbsp;문맥]\n{context}\n\n[질문]\n{question}\n\n[설명]")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 122</span>
+                <span class="code-content">])</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 123</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 124</span>
+                <span class="code-content"><span class="comment">#&nbsp;지원사업&nbsp;추천&nbsp;프롬프트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 125</span>
+                <span class="code-content"><span class="import">recommend_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_messages([</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 126</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("system",&nbsp;"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 127</span>
+                <span class="code-content">당신은&nbsp;예비·초기&nbsp;창업자에게&nbsp;가장&nbsp;적합한&nbsp;'지원사업을&nbsp;추천하는&nbsp;전문가&nbsp;AI'입니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 128</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 129</span>
+                <span class="code-content">[목표]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 130</span>
+                <span class="code-content">사용자의&nbsp;조건(나이,&nbsp;지역,&nbsp;업종,&nbsp;창업&nbsp;단계&nbsp;등)을&nbsp;기준으로</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 131</span>
+                <span class="code-content">'실질적인&nbsp;도움이&nbsp;되는&nbsp;사업(자금·공간·R&amp;D·시제품·교육)'을&nbsp;우선적으로&nbsp;추천합니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 132</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 133</span>
+                <span class="code-content">[추천&nbsp;우선순위]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 134</span>
+                <span class="code-content">1.&nbsp;현금성&nbsp;지원(사업화&nbsp;자금,&nbsp;시제품&nbsp;제작비,&nbsp;R&amp;D)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 135</span>
+                <span class="code-content">2.&nbsp;입주&nbsp;공간,&nbsp;장비&nbsp;지원</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 136</span>
+                <span class="code-content">3.&nbsp;엑셀러레이팅,&nbsp;멘토링</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 137</span>
+                <span class="code-content">4.&nbsp;단순&nbsp;교육/특강은&nbsp;마지막&nbsp;순위</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 138</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 139</span>
+                <span class="code-content">[추천&nbsp;규칙]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 140</span>
+                <span class="code-content">1.&nbsp;반드시&nbsp;announcement&nbsp;문서만&nbsp;사용</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 141</span>
+                <span class="code-content">2.&nbsp;사용자&nbsp;조건과&nbsp;'지역·연령·단계·업종'이&nbsp;명확히&nbsp;맞는&nbsp;것만&nbsp;추천</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 142</span>
+                <span class="code-content">3.&nbsp;최대&nbsp;2개까지만&nbsp;추천</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 143</span>
+                <span class="code-content">4.&nbsp;조건이&nbsp;맞는&nbsp;사업이&nbsp;없으면&nbsp;솔직하게&nbsp;말하기</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 144</span>
+                <span class="code-content">5.&nbsp;IT·서비스업이면&nbsp;'기술·콘텐츠·플랫폼'&nbsp;키워드&nbsp;포함&nbsp;사업&nbsp;우선</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 145</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 146</span>
+                <span class="code-content">[출력&nbsp;형식]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 147</span>
+                <span class="code-content">■&nbsp;추천&nbsp;사업명</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 148</span>
+                <span class="code-content">■&nbsp;왜&nbsp;이&nbsp;사용자에게&nbsp;적합한지</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 149</span>
+                <span class="code-content">■&nbsp;지원&nbsp;내용(자금/공간/교육&nbsp;중&nbsp;무엇인지&nbsp;명확히)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 150</span>
+                <span class="code-content">■&nbsp;신청&nbsp;대상&nbsp;요약</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 151</span>
+                <span class="code-content">■&nbsp;접수&nbsp;기간</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 152</span>
+                <span class="code-content">■&nbsp;주의사항</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 153</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 154</span>
+                <span class="code-content">마지막&nbsp;줄:&nbsp;[참고:&nbsp;지원사업&nbsp;공고]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 155</span>
+                <span class="code-content">"""),</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 156</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;("human",&nbsp;"[지원사업&nbsp;문맥]\n{context}\n\n[사용자&nbsp;조건]\n{question}\n\n위&nbsp;형식에&nbsp;맞춰&nbsp;추천해&nbsp;주세요.")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 157</span>
+                <span class="code-content">])</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 158</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 159</span>
+                <span class="code-content"><span class="comment">#&nbsp;Fallback&nbsp;프롬프트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 160</span>
+                <span class="code-content"><span class="import">fallback_prompt&nbsp;=&nbsp;ChatPromptTemplate.from_template("""</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 161</span>
+                <span class="code-content">질문:&nbsp;{question}</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 162</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 163</span>
+                <span class="code-content">내부&nbsp;문서에서&nbsp;관련&nbsp;정보를&nbsp;찾지&nbsp;못했습니다.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 164</span>
+                <span class="code-content">일반적인&nbsp;지식을&nbsp;바탕으로&nbsp;답변해주세요.</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 165</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 166</span>
+                <span class="code-content">답변:""")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 167</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 168</span>
+                <span class="code-content"><span class="comment">#&nbsp;체인&nbsp;생성</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 169</span>
+                <span class="code-content">qt_chain&nbsp;=&nbsp;qt_prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;StrOutputParser()</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 170</span>
+                <span class="code-content">multi_query_chain&nbsp;=&nbsp;multi_query_prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;StrOutputParser()</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 171</span>
+                <span class="code-content">relevance_chain&nbsp;=&nbsp;relevance_check_prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;StrOutputParser()</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 172</span>
+                <span class="code-content">fallback_chain&nbsp;=&nbsp;fallback_prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;StrOutputParser()</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 173</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 174</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 175</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 176</span>
+                <span class="code-content"><span class="comment">#&nbsp;헬퍼&nbsp;함수</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 177</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 178</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 179</span>
+                <span class="code-content">def&nbsp;choose_prompt(question:&nbsp;str):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 180</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""질문&nbsp;유형에&nbsp;따라&nbsp;적절한&nbsp;프롬프트&nbsp;선택"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 181</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;recommend_keywords&nbsp;=&nbsp;["추천",&nbsp;"맞는",&nbsp;"신청할&nbsp;수&nbsp;있는",&nbsp;"지원해주는",&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 182</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"사업&nbsp;알려줘",&nbsp;"혜택",&nbsp;"지원금",&nbsp;"지원사업"]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 183</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;law_keywords&nbsp;=&nbsp;["정의",&nbsp;"자격",&nbsp;"요건",&nbsp;"지원법",&nbsp;"법에서",&nbsp;"법상",&nbsp;"제도",&nbsp;"시행","규정"]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 184</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 185</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;any(k&nbsp;in&nbsp;question&nbsp;for&nbsp;k&nbsp;in&nbsp;recommend_keywords):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 186</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;recommend_prompt,&nbsp;"recommend_prompt"</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 187</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;any(k&nbsp;in&nbsp;question&nbsp;for&nbsp;k&nbsp;in&nbsp;law_keywords):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 188</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;law_prompt,&nbsp;"law_prompt"</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 189</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;rag_prompt,&nbsp;"rag_prompt"</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 190</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 191</span>
+                <span class="code-content"><span class="keyword">def&nbsp;format_docs_as_context(docs):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 192</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""RAG&nbsp;프롬프트에&nbsp;넣기&nbsp;좋은&nbsp;컨텍스트로&nbsp;변환&nbsp;(출처&nbsp;메타데이터&nbsp;포함)"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 193</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;docs:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 194</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;""</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 195</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;parts&nbsp;=&nbsp;[]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 196</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;i,&nbsp;d&nbsp;in&nbsp;enumerate(docs,&nbsp;1):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 197</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;isinstance(d,&nbsp;Document):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 198</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;src&nbsp;=&nbsp;d.metadata.get("source",&nbsp;d.metadata.get("url",&nbsp;"unknown"))</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 199</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parts.append(f"[문서&nbsp;{i}]&nbsp;(출처:&nbsp;{src})\n{d.page_content}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 200</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;"\n\n---\n\n".join(parts)</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 201</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 202</span>
+                <span class="code-content">def&nbsp;search_documents(queries,&nbsp;k_per_query=10):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 203</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""vectorstore에서&nbsp;멀티쿼리&nbsp;검색&nbsp;후&nbsp;중복제거&nbsp;→&nbsp;(Document,&nbsp;similarity)&nbsp;리스트&nbsp;반환</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 204</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;내부&nbsp;문서는&nbsp;이미&nbsp;Document&nbsp;형식이므로&nbsp;변환&nbsp;불필요"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 205</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;all_docs_with_scores&nbsp;=&nbsp;[]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 206</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;seen_contents&nbsp;=&nbsp;set()</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 207</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 208</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;q&nbsp;in&nbsp;queries:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 209</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 210</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs_with_scores&nbsp;=&nbsp;vectorstore.similarity_search_with_score(q,&nbsp;k=k_per_query)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 211</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 212</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("⚠&nbsp;vectorstore.similarity_search_with_score&nbsp;오류:",&nbsp;e)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 213</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs_with_scores&nbsp;=&nbsp;[]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 214</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 215</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;doc,&nbsp;distance&nbsp;in&nbsp;docs_with_scores:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 216</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;중복&nbsp;체크</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 217</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;doc.page_content&nbsp;in&nbsp;seen_contents:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 218</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 219</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seen_contents.add(doc.page_content)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 220</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 221</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;Chroma&nbsp;distance&nbsp;-&gt;&nbsp;유사도(0-1)&nbsp;변환</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 222</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;similarity&nbsp;=&nbsp;max(0.0,&nbsp;1.0&nbsp;-&nbsp;(distance&nbsp;/&nbsp;2.0))</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 223</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;all_docs_with_scores.append((doc,&nbsp;similarity))</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 224</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 225</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;all_docs_with_scores</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 226</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 227</span>
+                <span class="code-content">def&nbsp;filter_by_similarity(docs_with_scores,&nbsp;threshold=0.3):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 228</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;[(doc,&nbsp;sim)&nbsp;for&nbsp;doc,&nbsp;sim&nbsp;in&nbsp;docs_with_scores&nbsp;if&nbsp;sim&nbsp;&gt;=&nbsp;threshold]</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 229</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 230</span>
+                <span class="code-content">def&nbsp;check_relevance(question,&nbsp;docs_with_scores):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 231</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""LLM에게&nbsp;상위&nbsp;N개&nbsp;문서로&nbsp;관련성&nbsp;물어보기&nbsp;-&gt;&nbsp;True/False&nbsp;반환"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 232</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;docs_with_scores는&nbsp;(doc,&nbsp;sim)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 233</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;top_docs&nbsp;=&nbsp;docs_with_scores[:5]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 234</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;top_docs:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 235</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;False</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 236</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;Document&nbsp;객체에서&nbsp;직접&nbsp;접근</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 237</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;docs_text&nbsp;=&nbsp;"\n\n---\n\n".join(</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 238</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;f"[문서&nbsp;{i+1}]&nbsp;(출처:&nbsp;{getattr(doc.metadata,'get',lambda&nbsp;k,&nbsp;d=None:&nbsp;'unknown')('source','unknown')})\n{getattr(doc,'page_content',str(doc))[:600]}"</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 239</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;i,&nbsp;(doc,&nbsp;_)&nbsp;in&nbsp;enumerate(top_docs)</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 240</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 241</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 242</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res&nbsp;=&nbsp;relevance_chain.invoke({"question":&nbsp;question,&nbsp;"documents":&nbsp;docs_text})</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 243</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;"관련있음"&nbsp;in&nbsp;res</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 244</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 245</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(f"⚠&nbsp;관련성&nbsp;검증&nbsp;오류:&nbsp;{e}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 246</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;False</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 247</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 248</span>
+                <span class="code-content">def&nbsp;web_search(query:&nbsp;str,&nbsp;k=3):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 249</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""Tavily&nbsp;API&nbsp;기반&nbsp;웹검색</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 250</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;외부&nbsp;소스만&nbsp;Document로&nbsp;변환&nbsp;필요"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 251</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 252</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;retriever&nbsp;=&nbsp;TavilySearchAPIRetriever(k=k)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 253</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;results&nbsp;=&nbsp;retriever.invoke(query)&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 254</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 255</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;Tavily&nbsp;결과를&nbsp;Document로&nbsp;정규화</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 256</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs&nbsp;=&nbsp;[]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 257</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;r&nbsp;in&nbsp;results:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 258</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;isinstance(r,&nbsp;Document):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 259</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs.append(r)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 260</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;elif&nbsp;isinstance(r,&nbsp;dict):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 261</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;content&nbsp;=&nbsp;r.get("content")&nbsp;or&nbsp;r.get("snippet")&nbsp;or&nbsp;r.get("title")&nbsp;or&nbsp;str(r)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 262</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs.append(Document(</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 263</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_content=content,</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 264</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;metadata={"source":&nbsp;"web",&nbsp;"url":&nbsp;r.get("url",&nbsp;"unknown")}</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 265</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 266</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 267</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs.append(Document(</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 268</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_content=str(r),</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 269</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;metadata={"source":&nbsp;"web"}</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 270</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 271</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;docs</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 272</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 273</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 274</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raise&nbsp;RuntimeError(f"Tavily&nbsp;웹검색&nbsp;오류:&nbsp;{e}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 275</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 276</span>
+                <span class="code-content"><span class="comment">#&nbsp;-----------------------</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 277</span>
+                <span class="code-content"><span class="comment">#&nbsp;RAG&nbsp;응답&nbsp;생성&nbsp;함수</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 278</span>
+                <span class="code-content"><span class="comment">#&nbsp;-----------------------</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 279</span>
+                <span class="code-content"><span class="import">def&nbsp;rag_answer_from_docs(question:&nbsp;str,&nbsp;documents):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 280</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""문서&nbsp;리스트(Document&nbsp;또는&nbsp;(doc,score)&nbsp;혼합)을&nbsp;받아&nbsp;RAG&nbsp;응답&nbsp;생성</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 281</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;이미&nbsp;Document&nbsp;형식이므로&nbsp;tuple만&nbsp;풀어주면&nbsp;됨"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 282</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;tuple&nbsp;형식이면&nbsp;Document만&nbsp;추출</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 283</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;docs&nbsp;=&nbsp;[]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 284</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;item&nbsp;in&nbsp;documents:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 285</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;isinstance(item,&nbsp;tuple):</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 286</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs.append(item[0])&nbsp;&nbsp;#&nbsp;(doc,&nbsp;score)&nbsp;→&nbsp;doc</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 287</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 288</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;docs.append(item)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;이미&nbsp;Document</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 289</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 290</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;context&nbsp;=&nbsp;format_docs_as_context(docs)</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 291</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;context.strip():</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 292</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("⚠&nbsp;context&nbsp;비어있음&nbsp;-&gt;&nbsp;fallback&nbsp;LLM로&nbsp;이동")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 293</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;fallback_chain.invoke({"question":&nbsp;question})</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 294</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 295</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;prompt,&nbsp;pname&nbsp;=&nbsp;choose_prompt(question)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 296</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"[프롬프트&nbsp;사용]&nbsp;{pname}&nbsp;(문서&nbsp;기반)")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 297</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 298</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 299</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;answer&nbsp;=&nbsp;(prompt&nbsp;|&nbsp;llm&nbsp;|&nbsp;StrOutputParser()).invoke({</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 300</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"context":&nbsp;context,</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 301</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"question":&nbsp;question</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 302</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 303</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;answer</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 304</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 305</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(f"⚠&nbsp;RAG&nbsp;생성&nbsp;오류:&nbsp;{e}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 306</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;fallback_chain.invoke({"question":&nbsp;question})</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 307</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 308</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 309</span>
+                <span class="code-content"><span class="comment">#&nbsp;메인&nbsp;RAG&nbsp;함수</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 310</span>
+                <span class="code-content"><span class="comment">#&nbsp;========================================</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 311</span>
+                <span class="code-content">def&nbsp;multi_query_rag_with_qt(question:&nbsp;str,&nbsp;top_k=10,&nbsp;similarity_threshold=0.3):</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 312</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 313</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;전체&nbsp;흐름:</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 314</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1)&nbsp;쿼리&nbsp;트랜스폼&nbsp;(QT)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 315</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2)&nbsp;멀티쿼리&nbsp;생성&nbsp;(MQ)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 316</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3)&nbsp;벡터검색&nbsp;(멀티쿼리)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 317</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4)&nbsp;유사도&nbsp;필터링</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 318</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;문서&nbsp;있음&nbsp;-&gt;&nbsp;LLM&nbsp;관련성&nbsp;검증</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 319</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;문서&nbsp;없음&nbsp;/&nbsp;관련&nbsp;없음&nbsp;-&gt;&nbsp;웹검색&nbsp;또는&nbsp;Fallback&nbsp;(단일&nbsp;분기)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 320</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;"""</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 321</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 322</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;1)&nbsp;Query&nbsp;Transform</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 323</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 324</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qt_query&nbsp;=&nbsp;qt_chain.invoke({"question":&nbsp;question})</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 325</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 326</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;qt_query&nbsp;=&nbsp;question&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 327</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"[QT]&nbsp;변환:&nbsp;{qt_query}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 328</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 329</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;2)&nbsp;Multi&nbsp;Query</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 330</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 331</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mq_text&nbsp;=&nbsp;multi_query_chain.invoke({"question":&nbsp;qt_query})</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 332</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queries&nbsp;=&nbsp;[line.strip()&nbsp;for&nbsp;line&nbsp;in&nbsp;mq_text.splitlines()&nbsp;if&nbsp;line.strip()]</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 333</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 334</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queries&nbsp;=&nbsp;[qt_query]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 335</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"[멀티쿼리]&nbsp;{len(queries)}개:&nbsp;{queries}")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 336</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 337</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;3)&nbsp;Vector&nbsp;search&nbsp;(멀티쿼리)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 338</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;all_docs&nbsp;=&nbsp;search_documents(queries)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 339</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"[검색]&nbsp;총&nbsp;{len(all_docs)}개&nbsp;문서&nbsp;후보&nbsp;확보")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 340</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 341</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;4)&nbsp;유사도&nbsp;필터링</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 342</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;filtered_docs&nbsp;=&nbsp;filter_by_similarity(all_docs,&nbsp;similarity_threshold)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 343</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;print(f"[1차&nbsp;필터링]&nbsp;유사도&nbsp;&gt;={similarity_threshold}:&nbsp;{len(filtered_docs)}개")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 344</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 345</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;----------------------------------------------------</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 346</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;조건&nbsp;검사&nbsp;및&nbsp;웹&nbsp;검색&nbsp;통합</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 347</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;----------------------------------------------------</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 348</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 349</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;is_relevant&nbsp;=&nbsp;False</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 350</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 351</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;filtered_docs:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 352</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;문서가&nbsp;있는&nbsp;경우에만&nbsp;LLM으로&nbsp;관련성&nbsp;검사&nbsp;(기존&nbsp;로직&nbsp;유지)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 353</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("[2차&nbsp;필터링]&nbsp;LLM&nbsp;관련성&nbsp;검증&nbsp;중...")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 354</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;is_relevant&nbsp;=&nbsp;check_relevance(question,&nbsp;filtered_docs)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 355</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 356</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 357</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;5)&nbsp;최종&nbsp;분기:&nbsp;내부&nbsp;RAG&nbsp;vs.&nbsp;웹&nbsp;검색/Fallback</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 358</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;is_relevant:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 359</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;내부&nbsp;RAG&nbsp;실행:&nbsp;문서가&nbsp;있고,&nbsp;관련성도&nbsp;있음</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 360</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("&nbsp;내부&nbsp;문서가&nbsp;질문과&nbsp;관련있음&nbsp;→&nbsp;내부&nbsp;RAG&nbsp;실행")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 361</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;useful&nbsp;=&nbsp;filtered_docs[:top_k]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 362</span>
+                <span class="code-content"><span class="import">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;rag_answer_from_docs(question,&nbsp;useful)</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 363</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;else:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 364</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("&nbsp;내부&nbsp;문서&nbsp;(없거나/무관)&nbsp;→&nbsp;웹검색으로&nbsp;전환")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 365</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 366</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 367</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;웹&nbsp;검색&nbsp;시도</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 368</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;web_docs&nbsp;=&nbsp;web_search(question)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 369</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 370</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;웹&nbsp;검색&nbsp;실패&nbsp;시&nbsp;최종&nbsp;Fallback</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 371</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;fallback_chain.invoke({"question":&nbsp;question})</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 372</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 373</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;not&nbsp;web_docs:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 374</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("&nbsp;웹검색&nbsp;결과&nbsp;없음&nbsp;→&nbsp;LLM&nbsp;자체지식으로&nbsp;응답")</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 375</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;웹&nbsp;검색&nbsp;결과가&nbsp;없을&nbsp;시&nbsp;최종&nbsp;Fallback</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 376</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;fallback_chain.invoke({"question":&nbsp;question})</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 377</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 378</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;웹&nbsp;검색&nbsp;결과가&nbsp;있을&nbsp;시&nbsp;웹&nbsp;RAG&nbsp;실행</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 379</span>
+                <span class="code-content"><span class="import">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;rag_answer_from_docs(question,&nbsp;web_docs)</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 380</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 381</span>
+                <span class="code-content"><span class="comment">#&nbsp;-----------------------</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 382</span>
+                <span class="code-content"><span class="comment">#&nbsp;실행&nbsp;테스트</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 383</span>
+                <span class="code-content"><span class="comment">#&nbsp;-----------------------</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 384</span>
+                <span class="code-content"><span class="keyword">if&nbsp;__name__&nbsp;==&nbsp;"__main__":</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 385</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;test_cases&nbsp;=&nbsp;["헤어악세사리&nbsp;사업했는데&nbsp;판매가&nbsp;매우&nbsp;저조해.&nbsp;어떻게&nbsp;하면&nbsp;될까?"</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 386</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;"서울에서&nbsp;AI&nbsp;챗봇&nbsp;창업을&nbsp;하려고&nbsp;하는데&nbsp;받을&nbsp;수&nbsp;있는&nbsp;지원사업&nbsp;있나요?",</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 387</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;"서울에&nbsp;있는&nbsp;동물병원&nbsp;알려주세요",</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 388</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#&nbsp;"오늘&nbsp;서울&nbsp;날씨&nbsp;알려줘"</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 389</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;]</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 390</span>
+                <span class="code-content"></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 391</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;q&nbsp;in&nbsp;test_cases:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 392</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("\n"&nbsp;+&nbsp;"="*80)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 393</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("[질문]",&nbsp;q)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 394</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("="*80)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 395</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;try:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 396</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ans&nbsp;=&nbsp;multi_query_rag_with_qt(q)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 397</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("\n[답변]\n",&nbsp;ans)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 398</span>
+                <span class="code-content"><span class="keyword">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;except&nbsp;Exception&nbsp;as&nbsp;e:</span></span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 399</span>
+                <span class="code-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print("전체&nbsp;파이프라인&nbsp;오류:",&nbsp;e)</span>
+            </div>
+            <div class="line">
+                <span class="line-number"> 400</span>
+                <span class="code-content"></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,4 @@
+(Subclass)로 이루어져 있다. 
+  미국특허분류(UPC)는 Class/Subclass : 427/2.31 or 427.3A 의 형태를 가지며 
+서브클래스(Subclass)는 소수점(decimal modifiers)이나 알파벳(alpha modifiers)을 
+이용하여 표기하기도 한다.

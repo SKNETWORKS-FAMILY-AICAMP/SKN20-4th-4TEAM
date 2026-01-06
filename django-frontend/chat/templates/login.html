@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup AI - 로그인</title>
+    <style>
+        :root {
+            --primary-color: #6b73ff;
+            --primary-dark: #5a61ff;
+            --secondary-color: #f8fafc;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --background: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --input-bg: #334155;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .login-header {
+            padding: 40px 40px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-icon {
+            font-size: 40px;
+        }
+
+        .login-header h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+        }
+
+        .login-content {
+            padding: 40px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(107, 115, 255, 0.3);
+        }
+
+        .form-container {
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(107, 115, 255, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-error {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(107, 115, 255, 0.3);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-form,
+        .register-form {
+            display: none;
+        }
+
+        .login-form.active,
+        .register-form.active {
+            display: block;
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 10px;
+            }
+            
+            .login-header,
+            .login-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <span class="logo-icon">🚀</span>
+            </div>
+            <h1>Startup AI</h1>
+            <p>창업 지원 AI 어시스턴트</p>
+        </div>
+
+        <div class="login-content">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showLogin()">로그인</button>
+                <button class="tab-button" onclick="showRegister()">회원가입</button>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <div class="login-form active">
+                <form id="loginForm" onsubmit="event.preventDefault(); login();">
+                    <div class="form-group">
+                        <label for="loginUsername">사용자명</label>
+                        <input type="text" id="loginUsername" placeholder="사용자명을 입력하세요" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">비밀번호</label>
+                        <input type="password" id="loginPassword" placeholder="비밀번호를 입력하세요" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="submit-button" id="loginSubmit">
+                        로그인
+                    </button>
+                </form>
+            </div>
+
+            <!-- 회원가입 폼 -->
+            <div class="register-form">
+                <form id="registerForm" onsubmit="event.preventDefault(); register();">
+                    <div class="form-group">
+                        <label for="registerUsername">사용자명</label>
+                        <input type="text" id="registerUsername" placeholder="사용자명을 입력하세요" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">이메일</label>
+                        <input type="email" id="registerEmail" placeholder="이메일을 입력하세요" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">비밀번호</label>
+                        <input type="password" id="registerPassword" placeholder="비밀번호를 입력하세요" required autocomplete="new-password">
+                        <div class="password-requirements">
+                            최소 8자 이상의 비밀번호를 입력해주세요.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">비밀번호 확인</label>
+                        <input type="password" id="registerPasswordConfirm" placeholder="비밀번호를 다시 입력하세요" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="submit-button" id="registerSubmit">
+                        회원가입
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환 함수
+        function showLogin() {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button:first-child').classList.add('active');
+            
+            document.querySelector('.login-form').classList.add('active');
+            document.querySelector('.register-form').classList.remove('active');
+            
+            clearFormErrors();
+        }
+
+        function showRegister() {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.tab-button:last-child').classList.add('active');
+            
+            document.querySelector('.login-form').classList.remove('active');
+            document.querySelector('.register-form').classList.add('active');
+            
+            clearFormErrors();
+        }
+
+        // 로그인 함수
+        async function login() {
+            const submitBtn = document.getElementById('loginSubmit');
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            clearFormErrors();
+            
+            if (!username || !password) {
+                showFormError('loginUsername', '사용자명과 비밀번호를 입력해주세요.');
+                return;
+            }
+            
+            setLoading(submitBtn, true, '로그인 중...');
+            
+            try {
+                const response = await fetch('/api/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccessMessage('로그인 성공! 채팅 페이지로 이동합니다...');
+                    setTimeout(() => {
+                        window.location.href = '/chat/';
+                    }, 1000);
+                } else {
+                    showFormError('loginUsername', data.error || '로그인에 실패했습니다.');
+                }
+            } catch (error) {
+                showFormError('loginUsername', '네트워크 오류가 발생했습니다.');
+            } finally {
+                setLoading(submitBtn, false, '로그인');
+            }
+        }
+
+        // 회원가입 함수
+        async function register() {
+            const submitBtn = document.getElementById('registerSubmit');
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value.trim();
+            
+            clearFormErrors();
+            
+            if (!username || !email || !password || !passwordConfirm) {
+                showFormError('registerUsername', '모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            if (password !== passwordConfirm) {
+                showFormError('registerPasswordConfirm', '비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showFormError('registerPassword', '비밀번호는 최소 8자 이상이어야 합니다.');
+                return;
+            }
+            
+            setLoading(submitBtn, true, '가입 중...');
+            
+            try {
+                const response = await fetch('/api/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, password_confirm: passwordConfirm })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccessMessage('회원가입 성공! 채팅 페이지로 이동합니다...');
+                    setTimeout(() => {
+                        window.location.href = '/chat/';
+                    }, 1000);
+                } else {
+                    showFormError('registerUsername', data.error || '회원가입에 실패했습니다.');
+                }
+            } catch (error) {
+                showFormError('registerUsername', '네트워크 오류가 발생했습니다.');
+            } finally {
+                setLoading(submitBtn, false, '회원가입');
+            }
+        }
+
+        // 유틸리티 함수들
+        function setLoading(button, isLoading, text) {
+            button.disabled = isLoading;
+            if (isLoading) {
+                button.innerHTML = `<span class="loading-spinner"></span>${text}`;
+            } else {
+                button.innerHTML = text;
+            }
+        }
+
+        function showFormError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.createElement('div');
+            errorElement.className = 'form-error';
+            errorElement.innerHTML = `⚠️ ${message}`;
+            field.parentNode.appendChild(errorElement);
+            field.focus();
+        }
+
+        function showSuccessMessage(message) {
+            const activeForm = document.querySelector('.login-form.active, .register-form.active');
+            const successElement = document.createElement('div');
+            successElement.className = 'success-message';
+            successElement.innerHTML = `✅ ${message}`;
+            activeForm.insertBefore(successElement, activeForm.firstChild);
+        }
+
+        function clearFormErrors() {
+            document.querySelectorAll('.form-error').forEach(el => el.remove());
+            document.querySelectorAll('.success-message').forEach(el => el.remove());
+        }
+
+        // Enter 키로 폼 제출
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (document.querySelector('.login-form.active')) {
+                    login();
+                } else if (document.querySelector('.register-form.active')) {
+                    register();
+                }
+            }
+        });
+
+        // 페이지 로드 시 인증 상태 확인
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch('/api/user-status/');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    // 이미 로그인된 사용자는 채팅 페이지로 리다이렉트
+                    window.location.href = '/chat/';
+                }
+            } catch (error) {
+                // 에러가 발생하면 로그인 페이지 유지
+                console.log('Authentication check failed:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# 기본 환경
+python-dotenv
+
+# LangChain Core
+langchain
+langchain-core
+langchain-community
+
+# OpenAI 연동
+langchain-openai
+openai
+
+# Vector DB
+chromadb
+langchain-chroma
+
+# 문서 로딩 & 분할
+pypdf
+tiktoken
+
+# 웹 로더 대비(필수는 아니지만 안전)
+requests
+beautifulsoup4
+lxml
+
+# ✅ 추가: FastAPI 서버
+fastapi
+uvicorn
+pydantic
+
+# ✅ 추가: 웹 검색
+tavily-python

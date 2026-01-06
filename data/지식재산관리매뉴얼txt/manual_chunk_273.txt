@@ -1,0 +1,19 @@
+[섹션: 상표·디자인]
+[섹션: 특허]
+139
+6.1 특허정보의 조사
+  (3) 미국특허 검색사이트
+    ① USPTO 특허검색
+    미국특허상표청(USPTO)에서 제공하는 특허검색DB는 1976년부터 구축된 
+USPTO Patent Full-Text and Image Database와 2001년부터 구축된 USPTO 
+Patent Application Full Text and Image Database로 구분된다. USPTO에서 제공
+하는 웹사이트(http://appft.uspto.gov/netahtml/PTO/index.html)에서 미국 특허검
+색이 가능하다.
+[그림 6-4] 미국특허청 검색사이트
+    1971년에서 1976년 사이에 발행된 자료는 유료 서비스를 통해 해당자료에 대한 
+접근이 가능하고, 1971년 이전의 특허자료는 Patent and Trademark Depository 
+Library (PTDL)에 방문하여야만 접근이 가능하다. USPTO검색사이트는 다양한 연산
+자를 이용하여 검색이 가능하며 특허공보의 전문이미지를 무료로 다운로드 받아 출력
+이 가능하다.
+    ② 클레리베이트 검색사이트(http://clarivate.co.kr)
+    Clarivate Analytics(클래리베이트 애널리틱스)는 전 세계 고객들이 더욱 신속하

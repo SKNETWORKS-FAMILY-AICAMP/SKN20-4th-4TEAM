@@ -1,0 +1,25 @@
+[섹션: 지식재산 전략]
+[섹션: 특허]
+129
+6.1 특허정보의 조사
+[표 6-1] 기초정보 수집용 검색 사이트
+이 름 주 소
+LG상남도서관 http://www.lg.or.kr
+한국교육학술정보원 RISS http://www.riss4u.net
+국가전자도서관 http://www.dlibrary.go.kr
+대한전자공학회 http://www.ieek.or.kr
+한국전자통신연구원 http://www.etri.re.kr
+한국과학기술정보연구원 http://www.kisti.re.kr
+IEEE http://www.ieee.org
+전력전자학회 http://www.kipe.or.kr
+국회도서관 http://www.nanet.go.kr
+한국과학창의재단 https://www.kofac.re.kr
+WOPEC https://wopec.co.uk
+과학기술학회마을 http://society.kisti.re.kr/index.jsp
+국가과학기술지식정보 https://www.ntis.go.kr
+전자정보연구정보센터 http://www.eiric.or.kr
+3 특허분류
+  각 나라에서는 모든 특허문헌을 국제특허분류(IPC)에 맞추어 분류하고 있으며 또한 
+미국이나 일본처럼 국제특허분류(IPC) 외에 자국 내에서 만든 특허분류에 맞추어 또
+다시 특허문헌을 재분류하고 있는 실정이다. 
+  우리나라는 모든 특허문헌(실용신안포함)을 국제특허분류(IPC)에 맞추어 분류하고

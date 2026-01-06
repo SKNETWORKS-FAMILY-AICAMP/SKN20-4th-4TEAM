@@ -1,0 +1,39 @@
+# 대용량 데이터베이스 파일들
+backend/chroma_startup_all/
+*.sqlite3
+*.bin
+
+# 환경 변수 파일
+.env
+backend/.env
+
+# Python 관련
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDE 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# Django 관련
+django-frontend/db.sqlite3
+
+# 로그 파일
+*.log

@@ -1,0 +1,21 @@
+[섹션: 지식재산 전략]
+[섹션: 특허]
+131
+6.1 특허정보의 조사
+  다음은 미국특허분류(UPC)의 클래스(Class)의 예를 보여주는 것으로서, 클래스
+(Class)가 002이면 APPAREL에 관련된 분류이고  서브클래스(Subclass)는 다음과 같
+이 표현된다.
+Class Title 
+       002 APPAREL  
+       004 BATHS, CLOSETS, SINKS, AND SPITTOONS  
+      Class Title   ===> APPAREL
+      Subclass  Title 
+      1    MISCELLANEOUS 
+      455  GUARD OR PROTECTOR 
+      456  . Body cover 
+      457  . . Hazardous material body cover 
+      458  . . Thermal body cover 
+      2.11  . . Astronaut`s body cover 
+      2.12  . . . Having relatively rotatable coaxial coupling component 
+      2.13  . . . Having convoluted component 
+      2.14  . . Aviator`s body cover
