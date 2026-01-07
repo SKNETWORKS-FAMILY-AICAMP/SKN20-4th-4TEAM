@@ -394,11 +394,23 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
 
     print(f'[히스토리] 독립 질문: {standalone_question}')
 
-    # 2. 내부 RAG 검색용 Query Transform (QT) - 검색 정확도를 위해 순수 'question' 사용
+    # 2. 내부 RAG 검색용 Query Transform (QT) 
     try:
-        rag_qt_query = qt_chain.invoke({"question": question})
+        qt_result = qt_chain.invoke({"question": standalone_question})
+
+        if isinstance(qt_result, str):
+            rag_qt_query = qt_result
+        elif hasattr(qt_result, "content"):
+            rag_qt_query = qt_result.content
+        elif isinstance(qt_result, dict):
+            rag_qt_query = qt_result.get("text") or qt_result.get("output")
+        else:
+            rag_qt_query = standalone_question
+
     except Exception as e:
-        rag_qt_query = question
+        print(f"[QT ERROR] {e}")
+        rag_qt_query = standalone_question
+
     print(f"[QT] 변환 (내부 RAG): {rag_qt_query}")
     
     # 3. 멀티 쿼리 (MQ) - 내부 RAG 검색에 사용
