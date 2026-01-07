@@ -749,6 +749,7 @@
         // ========================================
         const API_BASE_URL = 'http://localhost:8000';  // FastAPI 서버 주소
         let isProcessing = false;
+        let chatHistory = [];  
 
         // ========================================
         // 서버 상태 확인
@@ -758,7 +759,7 @@
             const statusText = document.getElementById('serverStatusText');
             
             try {
-                const response = await fetch(`${API_BASE_URL}/health`, {
+                const response = await fetch('/api/health/', {  // 👈 Django API로 변경
                     method: 'GET',
                     timeout: 5000
                 });
@@ -809,42 +810,58 @@
             
             // 사용자 메시지 표시
             addMessage(message, 'user');
-            
+
+            // 👇 히스토리에 사용자 메시지 추가 (핵심!)
+            chatHistory.push({
+                role: 'user',
+                content: message
+            });
+
             // 타이핑 인디케이터 표시
             showTypingIndicator();
             
             try {
-                // API 호출
-                const response = await fetch(`${API_BASE_URL}/chat`, {
+                // 👇 API 호출 (히스토리 포함!)
+                const response = await fetch('/api/chat/', {  // Django API
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ question: message })
+                    body: JSON.stringify({ 
+                        question: message,
+                        chat_history: chatHistory  // 👈 히스토리 전송 (핵심!)
+                    })
                 });
                 
                 removeTypingIndicator();
-                
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.detail || `HTTP ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                // 봇 응답 표시
-                addMessage(data.answer, 'bot', data.source_type);
-                
-            } catch (error) {
-                removeTypingIndicator();
-                console.error('API 오류:', error);
-                addErrorMessage(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
-            } finally {
-                isProcessing = false;
-                sendBtn.disabled = false;
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `HTTP ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            // 봇 응답 표시
+            addMessage(data.answer, 'bot', data.source_type);
+            
+            // 👇 히스토리에 AI 응답 추가 (핵심!)
+            chatHistory.push({
+                role: 'assistant',
+                content: data.answer
+            });
+            
+            console.log('현재 히스토리:', chatHistory);  // 👈 디버깅용
+            
+        } catch (error) {
+            removeTypingIndicator();
+            console.error('API 오류:', error);
+            addErrorMessage(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
+        } finally {
+            isProcessing = false;
+            sendBtn.disabled = false;
         }
-
+    }
         // ========================================
         // 메시지 추가
         // ========================================
@@ -953,6 +970,10 @@
                     </div>
                 </div>
             `;
+            
+            // 👇 히스토리 초기화 (핵심!)
+            chatHistory = [];
+            console.log('히스토리 초기화됨');
         }
 
         // ========================================

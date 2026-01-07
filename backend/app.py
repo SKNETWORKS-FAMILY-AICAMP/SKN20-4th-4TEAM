@@ -7,8 +7,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uvicorn
-import webbrowser
-from threading import Timer
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
@@ -46,13 +44,9 @@ app.add_middleware(
 )
 
 # 요청/응답 모델
-class ChatMessage(BaseModel):
-    role: str  # 'user' 또는 'assistant'
-    content: str
-
 class ChatRequest(BaseModel):
     question: str
-    chat_history: List[ChatMessage] = []
+    chat_history: List[dict] = []
 
 class ChatResponse(BaseModel):
     answer: str
@@ -64,9 +58,8 @@ class ChatResponse(BaseModel):
 print("📚 벡터DB 로딩 중...")
 embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# 벡터DB 경로 확인 (절대경로 사용)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-vectorstore_path = os.path.join(current_dir, "chroma_startup_all")
+# 벡터DB 경로 확인
+vectorstore_path = "./chroma_startup_all"
 if not os.path.exists(vectorstore_path):
     print(f"⚠️ 경고: {vectorstore_path} 디렉토리가 없습니다.")
     print("벡터DB를 먼저 생성해주세요.")
@@ -311,46 +304,32 @@ def check_relevance(question, docs_with_scores):
         return False
 
 def web_search(query: str, k=3):
-    """Tavily API 기반 웹검색 (강화된 예외 처리)"""
+    """Tavily API 기반 웹검색"""
     if not TAVILY_API_KEY:
         raise RuntimeError("TAVILY_API_KEY가 설정되지 않았습니다.")
     
     try:
         retriever = TavilySearchAPIRetriever(k=k)
         results = retriever.invoke(query) 
-        
-        if not results:
-            print("⚠️ 웹검색 결과가 비어있습니다.")
-            return []
 
         docs = []
         for r in results:
-            try:
-                if isinstance(r, Document):
-                    docs.append(r)
-                elif isinstance(r, dict):
-                    content = r.get("content") or r.get("snippet") or r.get("title") or str(r)
-                    if content and content.strip():  # 빈 내용 필터링
-                        docs.append(Document(
-                            page_content=content,
-                            metadata={"source": "web", "url": r.get("url", "unknown")}
-                        ))
-                else:
-                    content = str(r)
-                    if content and content.strip():
-                        docs.append(Document(
-                            page_content=content,
-                            metadata={"source": "web"}
-                        ))
-            except Exception as doc_error:
-                print(f"⚠️ 문서 처리 오류 (건너뜀): {doc_error}")
-                continue
-                
-        print(f"✅ 웹검색 완료: {len(docs)}개 문서")
+            if isinstance(r, Document):
+                docs.append(r)
+            elif isinstance(r, dict):
+                content = r.get("content") or r.get("snippet") or r.get("title") or str(r)
+                docs.append(Document(
+                    page_content=content,
+                    metadata={"source": "web", "url": r.get("url", "unknown")}
+                ))
+            else:
+                docs.append(Document(
+                    page_content=str(r),
+                    metadata={"source": "web"}
+                ))
         return docs
         
     except Exception as e:
-        print(f"⚠️ Tavily 웹검색 오류: {e}")
         raise RuntimeError(f"Tavily 웹검색 오류: {e}")
 
 def rag_answer_from_docs(question: str, documents):
@@ -384,106 +363,77 @@ def rag_answer_from_docs(question: str, documents):
 # ========================================
 # 메인 RAG 함수
 # ========================================
-# ========================================
-# 메인 RAG 함수
-# ========================================
-
-def process_chat_history(chat_history: List[ChatMessage]):
-    """채팅 히스토리를 LangChain 메시지 형태로 변환"""
+def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, similarity_threshold=0.3):
+    """
+    전체 흐름:
+      1) 독립 질문 생성 (Contextualize)
+      2) 쿼리 트랜스폼 (QT) - 내부 RAG용
+      3) 멀티쿼리 생성 (MQ)
+      4) 벡터검색
+      5) 최종 분기: 내부 RAG vs. 웹검색/Fallback
+      
+    Returns:
+        tuple: (answer, source_type)
+    """
     lc_chat_history = []
-    for msg in chat_history:
-        if msg.role == 'user':
-            lc_chat_history.append(HumanMessage(content=msg.content))
-        elif msg.role == 'assistant':
-            lc_chat_history.append(AIMessage(content=msg.content))
-    return lc_chat_history
+    for msg in chat_history :
+        if msg.get('role')== 'user':
+            lc_chat_history.append(HumanMessage(content=msg['content']))
+        elif msg.get('role') == 'assistant':
+            lc_chat_history.append(AIMessage(content=msg['content']))
 
-def contextualize_question(question: str, lc_chat_history: list):
-    """채팅 히스토리를 바탕으로 독립적인 질문 생성"""
+    # 1. 독립 질문 생성 (Contextualize) - LLM의 최종 답변 생성 및 웹 검색에 사용
     try:
         standalone_question = contextualize_q_chain.invoke({
-            'chat_history': lc_chat_history,
-            'input': question
+            'chat_history' : lc_chat_history,
+            'input' : question
         })
-        print(f'[히스토리] 독립 질문: {standalone_question}')
-        return standalone_question
     except Exception as e:
         print(f'질문 재구성 오류: {e}. 원본 질문 사용.')
-        return question
+        standalone_question = question
 
-def generate_search_queries(question: str):
-    """검색용 쿼리 생성 및 멀티쿼리 생성"""
-    # Query Transform
+    print(f'[히스토리] 독립 질문: {standalone_question}')
+
+    # 2. 내부 RAG 검색용 Query Transform (QT) - 검색 정확도를 위해 순수 'question' 사용
     try:
         rag_qt_query = qt_chain.invoke({"question": question})
     except Exception as e:
         rag_qt_query = question
     print(f"[QT] 변환 (내부 RAG): {rag_qt_query}")
     
-    # Multi Query
+    # 3. 멀티 쿼리 (MQ) - 내부 RAG 검색에 사용
     try:
         mq_text = multi_query_chain.invoke({"question": rag_qt_query})
         queries = [line.strip() for line in mq_text.splitlines() if line.strip()]
     except Exception as e:
         queries = [rag_qt_query]
     print(f"[멀티쿼리] {len(queries)}개: {queries}")
-    
-    return queries, rag_qt_query
 
-def search_and_filter_documents(queries: list, similarity_threshold=0.3):
-    """벡터 검색 및 유사도 필터링"""
-    # 벡터 검색
+    # 4. Vector search (멀티쿼리)
     all_docs = search_documents(queries)
     print(f"[검색] 총 {len(all_docs)}개 문서 후보 확보")
 
-    # 유사도 필터링
+    # 5. 유사도 필터링
     filtered_docs = filter_by_similarity(all_docs, similarity_threshold)
     print(f"[1차 필터링] 유사도 >={similarity_threshold}: {len(filtered_docs)}개")
-    
-    return filtered_docs
 
-def decide_search_strategy(standalone_question: str, filtered_docs: list):
-    """내부 RAG vs 웹검색 결정"""
     is_relevant = False
     
     if filtered_docs:
         print("[2차 필터링] LLM 관련성 검증 중...")
         is_relevant = check_relevance(standalone_question, filtered_docs)
-    
-    return is_relevant
 
-def multi_query_rag_with_qt(question: str, chat_history: List[ChatMessage], top_k=10, similarity_threshold=0.3):
-    """
-    전체 RAG 파이프라인 실행
-    
-    Returns:
-        tuple: (answer, source_type)
-    """
-    # 1. 채팅 히스토리 처리
-    lc_chat_history = process_chat_history(chat_history)
-
-    # 2. 독립 질문 생성 (답변 및 웹검색용)
-    standalone_question = contextualize_question(question, lc_chat_history)
-
-    # 3. 검색 쿼리 생성 (내부 RAG용은 원본 질문 사용)
-    queries, rag_qt_query = generate_search_queries(question)
-
-    # 4. 벡터 검색 및 필터링
-    filtered_docs = search_and_filter_documents(queries, similarity_threshold)
-
-    # 5. 검색 전략 결정
-    is_relevant = decide_search_strategy(standalone_question, filtered_docs)
-
-    # 6. 최종 분기: 내부 RAG vs. 웹검색/Fallback
+    # 6. 최종 분기: 내부 RAG vs. 웹 검색/Fallback
     if is_relevant:
         print("✅ 내부 문서가 질문과 관련있음 → 내부 RAG 실행")
         useful = filtered_docs[:top_k]
+        # 최종 답변 생성에는 히스토리 반영된 독립 질문 사용
         answer = rag_answer_from_docs(standalone_question, useful)
         return answer, "internal-rag"
     else:
         print("⚠️ 내부 문서 (없거나/무관) → 웹검색으로 전환")
         
-        # 웹 검색 쿼리 최적화
+        # 6-1. 웹 검색 쿼리 최적화: standalone_question을 qt_chain에 재활용하여 검색 정확도 개선
         try:
             web_search_query = qt_chain.invoke({"question": standalone_question})
         except Exception as e:
@@ -491,8 +441,8 @@ def multi_query_rag_with_qt(question: str, chat_history: List[ChatMessage], top_
             web_search_query = standalone_question
         print(f"[웹QT/재활용] 변환: {web_search_query}")
 
-        # 웹 검색 실행
         try:
+            # 최적화된 쿼리를 웹 검색에 사용
             web_docs = web_search(web_search_query)
         except Exception as e:
             print(f"⚠️ 웹검색 실패: {e}")

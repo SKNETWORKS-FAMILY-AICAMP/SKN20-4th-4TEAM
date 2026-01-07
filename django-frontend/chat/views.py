@@ -263,6 +263,7 @@ def chat_api(request):
             # 1. 요청 데이터 파싱
             data = json.loads(request.body)
             question = data.get('question')
+            chat_history = data.get('chat_history', [])
             
             if not question:
                 return JsonResponse({
@@ -270,6 +271,7 @@ def chat_api(request):
                 }, status=400)
             
             print(f"[Django] 질문 받음: {question}")
+            print(f"[Django] 히스토리 길이: {len(chat_history)}")
             
             # 2. 세션 관리
             session = get_or_create_session(request)
@@ -279,7 +281,10 @@ def chat_api(request):
             print(f"[Django] FastAPI 호출 중...")
             response = requests.post(
                 f"{FASTAPI_URL}/chat",
-                json={'question': question},
+                json={
+                    'question': question,
+                    'chat_history': chat_history  # 👈 히스토리 전달
+                },
                 timeout=120  # 2분 (RAG 처리 시간)
             )
             

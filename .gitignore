@@ -37,3 +37,6 @@ django-frontend/db.sqlite3
 
 # 로그 파일
 *.log
+
+/chroma_startup_all
+chunked_documents.pkl
