@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.validators import validate_email
@@ -472,3 +473,29 @@ def health_check(request):
         'status': 'error',
         'message': '백엔드 서버 연결 안 됨'
     }, status=503)
+
+@login_required
+def my_chats(request):
+    """채팅 기록 페이지 - 사용자별 최근 50개 메시지"""
+    try:
+        # 로그인된 사용자와 연관된 채팅 세션들을 찾습니다
+        # user_identifier로 사용자를 식별 (여기서는 username 사용)
+        user_sessions = ChatSession.objects.filter(
+            user_identifier=request.user.username
+        ).prefetch_related('messages')
+        
+        # 해당 세션들의 메시지들을 최신순으로 가져옵니다
+        messages = ChatMessage.objects.filter(
+            session__in=user_sessions
+        ).order_by('-timestamp')[:50]
+        
+        return render(request, 'my_chats.html', {
+            'messages': messages,
+            'user': request.user
+        })
+    except Exception as e:
+        return render(request, 'my_chats.html', {
+            'messages': [],
+            'error': f"채팅 기록을 불러오는 중 오류가 발생했습니다: {str(e)}",
+            'user': request.user
+        })

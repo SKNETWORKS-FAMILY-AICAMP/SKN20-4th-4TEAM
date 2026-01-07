@@ -21,4 +21,7 @@ urlpatterns = [
     path('api/history/', views.get_chat_history, name='chat_history'),
     path('api/sessions/', views.get_session_list, name='session_list'),
     path('api/new-session/', views.new_session, name='new_session'),
+    
+    # 채팅 내역 페이지
+    path('my-chats/', views.my_chats, name='my_chats'),
 ]

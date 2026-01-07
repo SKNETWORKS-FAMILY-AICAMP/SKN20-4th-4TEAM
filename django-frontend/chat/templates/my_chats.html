@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 채팅 기록 - 창업 지원 AI 어시스턴트</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1a1d2e;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #16192b;
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .content {
+            padding: 32px;
+        }
+
+        .user-info {
+            color: #888;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .chat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-meta {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .chat-time {
+            color: #888;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .chat-source {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .source-internal-rag {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .source-web-search {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .source-fallback {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+
+        .source-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .chat-content {
+            display: grid;
+            gap: 16px;
+        }
+
+        .message-section {
+            border-left: 3px solid;
+            padding-left: 16px;
+        }
+
+        .user-message {
+            border-left-color: #667eea;
+        }
+
+        .ai-response {
+            border-left-color: #22c55e;
+        }
+
+        .message-label {
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .message-text {
+            color: #e5e7eb;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: #888;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        .empty-description {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .pagination-info {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .chat-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                📜 내 채팅 기록
+            </div>
+            <div class="header-actions">
+                <a href="/chat/" class="btn btn-secondary">
+                    💬 채팅하기
+                </a>
+                <button class="btn" onclick="location.reload()">
+                    🔄 새로고침
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="user-info">
+                👤 <strong>{{ user.username }}</strong>님의 채팅 기록 (최근 50개)
+            </div>
+
+            {% if error %}
+                <div class="error-message">
+                    ❌ {{ error }}
+                </div>
+            {% endif %}
+
+            {% if messages %}
+                <div class="chat-history">
+                    {% for message in messages %}
+                        <div class="chat-item">
+                            <div class="chat-meta">
+                                <div class="chat-time">
+                                    🕐 {{ message.timestamp|date:"Y-m-d H:i" }}
+                                    {% if message.response_time %}
+                                        ({{ message.response_time|floatformat:2 }}초)
+                                    {% endif %}
+                                </div>
+                                <div class="chat-source source-{{ message.source_type }}">
+                                    {% if message.source_type == 'internal-rag' %}
+                                        📚 내부 문서
+                                    {% elif message.source_type == 'web-search' %}
+                                        🌐 웹 검색
+                                    {% elif message.source_type == 'fallback' %}
+                                        🤖 AI 지식
+                                    {% else %}
+                                        ❗ 오류
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="chat-content">
+                                <div class="message-section user-message">
+                                    <div class="message-label">사용자 질문</div>
+                                    <div class="message-text">{{ message.user_message }}</div>
+                                </div>
+                                
+                                <div class="message-section ai-response">
+                                    <div class="message-label">AI 답변</div>
+                                    <div class="message-text">{{ message.ai_response }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="pagination-info">
+                    최근 {{ messages|length }}개의 채팅 기록을 표시하고 있습니다.
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <div class="empty-title">아직 채팅 기록이 없습니다</div>
+                    <div class="empty-description">
+                        AI 어시스턴트와 대화를 시작해보세요!<br>
+                        창업에 관한 궁금한 점을 언제든지 물어보실 수 있습니다.
+                    </div>
+                    <a href="/chat/" class="btn" style="margin-top: 24px; display: inline-flex;">
+                        💬 채팅 시작하기
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // 로그인 상태 확인
+        fetch('/api/user-status/')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.authenticated) {
+                    window.location.href = '/';
+                }
+            })
+            .catch(() => {
+                window.location.href = '/';
+            });
+    </script>
+</body>
+</html>
