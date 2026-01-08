@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 채팅 기록 - 창업 지원 AI 어시스턴트</title>
+    <title>내 채팅 기록 | Boss Baby AI</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +13,8 @@
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(180deg, #e8f4fc 0%, #d0ebf7 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -21,23 +22,23 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: #1a1d2e;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 168, 232, 0.15);
             overflow: hidden;
         }
 
         .header {
-            background: #16192b;
+            background: white;
             padding: 24px 32px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 168, 232, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .header-title {
-            color: #fff;
+            color: #00a8e8;
             font-size: 24px;
             font-weight: 700;
             display: flex;
@@ -51,7 +52,7 @@
         }
 
         .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: white;
             padding: 12px 20px;
             border: none;
@@ -66,17 +67,20 @@
         }
 
         .btn:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            background: linear-gradient(135deg, #00b8f8 0%, #0088cc 100%);
             transform: translateY(-2px);
+            color: white;
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: white;
+            border: 2px solid #00a8e8;
+            color: #00a8e8;
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: #00a8e8;
+            color: white;
         }
 
         .content {
@@ -84,7 +88,7 @@
         }
 
         .user-info {
-            color: #888;
+            color: #666;
             margin-bottom: 24px;
             font-size: 14px;
         }
@@ -96,16 +100,17 @@
         }
 
         .chat-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: white;
             border-radius: 16px;
             padding: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 168, 232, 0.15);
             transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .chat-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(0, 168, 232, 0.3);
+            box-shadow: 0 5px 20px rgba(0, 168, 232, 0.15);
         }
 
         .chat-meta {
@@ -117,7 +122,7 @@
         }
 
         .chat-time {
-            color: #888;
+            color: #666;
             font-size: 14px;
             min-width: 150px;
         }
@@ -131,23 +136,23 @@
         }
 
         .source-internal-rag {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
         }
 
         .source-web-search {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
+            background: rgba(0, 168, 232, 0.15);
+            color: #00a8e8;
         }
 
         .source-fallback {
-            background: rgba(168, 85, 247, 0.2);
-            color: #a855f7;
+            background: rgba(241, 196, 15, 0.15);
+            color: #f39c12;
         }
 
         .source-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
         }
 
         .chat-content {
@@ -161,15 +166,15 @@
         }
 
         .user-message {
-            border-left-color: #667eea;
+            border-left-color: #00a8e8;
         }
 
         .ai-response {
-            border-left-color: #22c55e;
+            border-left-color: #27ae60;
         }
 
         .message-label {
-            color: #888;
+            color: #666;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
@@ -177,7 +182,7 @@
         }
 
         .message-text {
-            color: #e5e7eb;
+            color: #333;
             line-height: 1.6;
             white-space: pre-line;
         }
@@ -185,7 +190,7 @@
         .empty-state {
             text-align: center;
             padding: 64px 32px;
-            color: #888;
+            color: #666;
         }
 
         .empty-icon {
@@ -195,19 +200,20 @@
 
         .empty-title {
             font-size: 20px;
-            color: #ccc;
+            color: #333;
             margin-bottom: 8px;
         }
 
         .empty-description {
             font-size: 14px;
             line-height: 1.5;
+            color: #666;
         }
 
         .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
             padding: 16px;
             border-radius: 12px;
             margin-bottom: 24px;
@@ -215,11 +221,28 @@
 
         .pagination-info {
             text-align: center;
-            color: #888;
+            color: #666;
             font-size: 14px;
             margin-top: 32px;
             padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(0, 168, 232, 0.1);
+        }
+
+        /* Boss Baby 캐릭터 */
+        .character-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            z-index: 100;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: transform 0.3s;
+        }
+        .character-fixed:hover {
+            transform: scale(1.1);
+        }
+        .character-fixed img {
+            width: 100%;
         }
 
         @media (max-width: 768px) {
@@ -252,6 +275,11 @@
     </style>
 </head>
 <body>
+    <!-- Boss Baby 캐릭터 -->
+    <div class="character-fixed">
+        <img src="{% static 'bossbaby.png' %}" alt="Boss Baby">
+    </div>
+
     <div class="container">
         <div class="header">
             <div class="header-title">

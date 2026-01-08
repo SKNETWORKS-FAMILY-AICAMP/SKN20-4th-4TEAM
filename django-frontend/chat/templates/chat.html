@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>창업 지원 AI 어시스턴트</title>
+    <title>창업 지원 AI 어시스턴트 | Boss Baby AI</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +13,8 @@
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(180deg, #e8f4fc 0%, #d0ebf7 100%);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -24,20 +25,20 @@
             width: 95%;
             max-width: 1400px;
             height: 90vh;
-            background: #1a1d2e;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 168, 232, 0.15);
             display: flex;
             overflow: hidden;
         }
 
         .sidebar {
             width: 280px;
-            background: #16192b;
+            background: rgba(255, 255, 255, 0.98);
             padding: 24px;
             display: flex;
             flex-direction: column;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(0, 168, 232, 0.1);
         }
 
         .logo {
@@ -50,7 +51,7 @@
         .logo-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -59,13 +60,13 @@
         }
 
         .logo-text h1 {
-            color: #fff;
+            color: #00a8e8;
             font-size: 18px;
             font-weight: 700;
         }
 
         .logo-text p {
-            color: #888;
+            color: #666;
             font-size: 12px;
             margin-top: 4px;
         }
@@ -75,7 +76,7 @@
         }
 
         .category-title {
-            color: #888;
+            color: #666;
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
@@ -88,7 +89,7 @@
         .category-item {
             padding: 12px 16px;
             border-radius: 12px;
-            color: #ccc;
+            color: #555;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
@@ -98,12 +99,12 @@
         }
 
         .category-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
+            background: rgba(0, 168, 232, 0.1);
+            color: #00a8e8;
         }
 
         .category-item.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: #fff;
         }
 
@@ -111,9 +112,9 @@
         .user-section {
             margin: 24px 0;
             padding: 16px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 168, 232, 0.05);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 168, 232, 0.1);
         }
 
         .auth-buttons {
@@ -133,19 +134,19 @@
         }
 
         .login-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: white;
         }
 
         .register-btn {
             background: transparent;
-            border: 1px solid rgba(102, 126, 234, 0.5);
-            color: #667eea;
+            border: 1px solid rgba(0, 168, 232, 0.5);
+            color: #00a8e8;
         }
 
         .auth-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.3);
         }
 
         .user-info {
@@ -163,7 +164,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -176,31 +177,33 @@
         }
 
         .user-name {
-            color: #fff;
+            color: #333;
             font-weight: 600;
             font-size: 14px;
         }
 
         .user-email {
-            color: #888;
+            color: #666;
             font-size: 12px;
             margin-top: 2px;
         }
 
         .logout-btn {
             width: 100%;
-            padding: 8px 12px;
-            background: rgba(248, 113, 113, 0.2);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            border-radius: 6px;
-            color: #f87171;
-            font-size: 12px;
+            padding: 10px 12px;
+            background: white;
+            border: 2px solid #00a8e8;
+            border-radius: 25px;
+            color: #00a8e8;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
         }
 
         .logout-btn:hover {
-            background: rgba(248, 113, 113, 0.3);
+            background: #00a8e8;
+            color: white;
         }
 
         /* 모달 스타일 */
@@ -210,7 +213,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -226,13 +229,14 @@
         }
 
         .modal {
-            background: #1a1d2e;
+            background: white;
             border-radius: 16px;
             padding: 32px;
             width: 90%;
             max-width: 400px;
             transform: translateY(30px);
             transition: transform 0.3s;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
 
         .modal-overlay.show .modal {
@@ -245,13 +249,13 @@
         }
 
         .modal-header h2 {
-            color: #fff;
+            color: #333;
             font-size: 24px;
             margin-bottom: 8px;
         }
 
         .modal-header p {
-            color: #888;
+            color: #666;
             font-size: 14px;
         }
 
@@ -261,7 +265,7 @@
 
         .form-group label {
             display: block;
-            color: #ccc;
+            color: #555;
             margin-bottom: 8px;
             font-size: 14px;
         }
@@ -269,21 +273,21 @@
         .form-group input {
             width: 100%;
             padding: 12px 16px;
-            background: #252a3d;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #f8f9fa;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            color: #fff;
+            color: #333;
             font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
         }
 
         .form-group input:focus {
-            border-color: #667eea;
+            border-color: #00a8e8;
         }
 
         .form-error {
-            color: #f87171;
+            color: #e74c3c;
             font-size: 12px;
             margin-top: 4px;
         }
@@ -306,14 +310,14 @@
         }
 
         .modal-btn.primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: white;
         }
 
         .modal-btn.secondary {
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #ccc;
+            border: 1px solid #ddd;
+            color: #666;
         }
 
         .modal-btn:disabled {
@@ -324,11 +328,11 @@
         .stats {
             margin-top: auto;
             padding-top: 24px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(0, 168, 232, 0.1);
         }
 
         .stat-item {
-            color: #888;
+            color: #666;
             font-size: 14px;
             margin-bottom: 8px;
         }
@@ -339,7 +343,7 @@
             align-items: center;
             gap: 8px;
             padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 168, 232, 0.05);
             border-radius: 8px;
             margin-top: 12px;
         }
@@ -352,12 +356,12 @@
         }
 
         .status-dot.online {
-            background: #4ade80;
+            background: #27ae60;
             animation: pulse 2s infinite;
         }
 
         .status-dot.offline {
-            background: #f87171;
+            background: #e74c3c;
         }
 
         @keyframes pulse {
@@ -366,7 +370,7 @@
         }
 
         .status-text {
-            color: #888;
+            color: #666;
             font-size: 12px;
         }
 
@@ -374,19 +378,20 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #1a1d2e;
+            background: white;
         }
 
         .chat-header {
             padding: 24px 32px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 168, 232, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: rgba(255, 255, 255, 0.98);
         }
 
         .header-title h2 {
-            color: #fff;
+            color: #00a8e8;
             font-size: 20px;
             font-weight: 600;
         }
@@ -400,9 +405,9 @@
             width: 40px;
             height: 40px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 168, 232, 0.1);
             border: none;
-            color: #ccc;
+            color: #00a8e8;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
@@ -412,8 +417,7 @@
         }
 
         .action-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            color: #667eea;
+            background: rgba(0, 168, 232, 0.2);
         }
 
         .messages {
@@ -423,6 +427,7 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
+            background: #f8fbfd;
         }
 
         .message {
@@ -458,13 +463,13 @@
         }
 
         .avatar.bot {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: #fff;
         }
 
         .avatar.user {
-            background: #2d3142;
-            color: #667eea;
+            background: #e8f4fc;
+            color: #00a8e8;
         }
 
         .message-content {
@@ -477,13 +482,14 @@
         }
 
         .message.bot .message-content {
-            background: #252a3d;
-            color: #e0e0e0;
+            background: white;
+            color: #333;
             border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: #fff;
             border-bottom-right-radius: 4px;
         }
@@ -499,18 +505,18 @@
         }
 
         .status-badge.internal-rag {
-            background: rgba(74, 222, 128, 0.2);
-            color: #4ade80;
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
         }
 
         .status-badge.web-search {
-            background: rgba(96, 165, 250, 0.2);
-            color: #60a5fa;
+            background: rgba(0, 168, 232, 0.15);
+            color: #00a8e8;
         }
 
         .status-badge.fallback {
-            background: rgba(251, 191, 36, 0.2);
-            color: #fbbf24;
+            background: rgba(241, 196, 15, 0.15);
+            color: #f39c12;
         }
 
         .quick-replies {
@@ -519,14 +525,15 @@
             padding: 0 32px;
             margin-bottom: 16px;
             flex-wrap: wrap;
+            background: white;
         }
 
         .quick-reply {
             padding: 10px 20px;
-            border-radius: 20px;
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: #667eea;
+            border-radius: 25px;
+            background: rgba(0, 168, 232, 0.1);
+            border: 1px solid rgba(0, 168, 232, 0.3);
+            color: #00a8e8;
             cursor: pointer;
             transition: all 0.3s;
             font-size: 14px;
@@ -536,43 +543,45 @@
         }
 
         .quick-reply:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
+            background: #00a8e8;
+            color: white;
             transform: translateY(-2px);
         }
 
         .input-area {
             padding: 24px 32px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(0, 168, 232, 0.1);
+            background: white;
         }
 
         .input-wrapper {
             display: flex;
             gap: 12px;
-            background: #252a3d;
+            background: #f8f9fa;
             border-radius: 16px;
             padding: 12px 20px;
             align-items: center;
+            border: 1px solid rgba(0, 168, 232, 0.2);
         }
 
         .input-wrapper input {
             flex: 1;
             background: none;
             border: none;
-            color: #fff;
+            color: #333;
             font-size: 15px;
             outline: none;
         }
 
         .input-wrapper input::placeholder {
-            color: #666;
+            color: #999;
         }
 
         .send-btn {
             width: 44px;
             height: 44px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             border: none;
             color: #fff;
             cursor: pointer;
@@ -585,7 +594,7 @@
 
         .send-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.4);
         }
 
         .send-btn:disabled {
@@ -598,16 +607,17 @@
             display: flex;
             gap: 6px;
             padding: 16px 20px;
-            background: #252a3d;
+            background: white;
             border-radius: 16px;
             border-bottom-left-radius: 4px;
             width: fit-content;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
 
         .typing-dot {
             width: 8px;
             height: 8px;
-            background: #667eea;
+            background: #00a8e8;
             border-radius: 50%;
             animation: typing 1.4s infinite ease-in-out;
         }
@@ -633,13 +643,32 @@
 
         /* 에러 메시지 스타일 */
         .error-message {
-            background: rgba(248, 113, 113, 0.1);
-            border: 1px solid rgba(248, 113, 113, 0.3);
-            color: #f87171;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 14px;
             margin: 8px 0;
+        }
+
+        /* Boss Baby 캐릭터 */
+        .character-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            z-index: 100;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: transform 0.3s;
+        }
+
+        .character-fixed:hover {
+            transform: scale(1.1);
+        }
+
+        .character-fixed img {
+            width: 100%;
         }
     </style>
 </head>
@@ -745,6 +774,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Boss Baby 캐릭터 -->
+    <div class="character-fixed">
+        <img src="{% static 'bossbaby.png' %}" alt="Boss Baby">
     </div>
 
     <script>

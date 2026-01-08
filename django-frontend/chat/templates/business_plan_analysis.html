@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,7 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(180deg, #e8f4fc 0%, #d0ebf7 100%);
             font-family: 'Noto Sans KR', sans-serif;
             min-height: 100vh;
             padding-bottom: 50px;
@@ -16,11 +17,12 @@
         .navbar {
             background: rgba(255,255,255,0.95) !important;
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(0,168,232,0.1);
         }
         .navbar-brand {
             font-size: 1.25rem;
             font-weight: 700;
+            color: #00a8e8 !important;
         }
         .card {
             border: none;
@@ -33,7 +35,7 @@
         
         /* 헤더 */
         .analysis-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: white;
             padding: 40px;
             border-radius: 20px;
@@ -96,7 +98,7 @@
             color: #2c3e50;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 3px solid #00a8e8;
         }
         .section-icon {
             margin-right: 10px;
@@ -143,9 +145,9 @@
             transition: all 0.3s;
         }
         .suggestion-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             color: white;
-            border-color: #667eea;
+            border-color: #00a8e8;
         }
         .suggestion-content {
             display: none;
@@ -170,11 +172,31 @@
         
         /* 버튼 */
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
             border: none;
             border-radius: 12px;
             padding: 14px 32px;
             font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00b8f8 0%, #0088cc 100%);
+        }
+
+        /* Boss Baby 캐릭터 */
+        .character-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            z-index: 100;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: transform 0.3s;
+        }
+        .character-fixed:hover {
+            transform: scale(1.1);
+        }
+        .character-fixed img {
+            width: 100%;
         }
         .btn-outline-secondary {
             border-radius: 12px;
@@ -203,9 +225,14 @@
     </style>
 </head>
 <body>
+    <!-- Boss Baby 캐릭터 -->
+    <div class="character-fixed">
+        <img src="{% static 'bossbaby.png' %}" alt="Boss Baby">
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="/chat/">스타트업 AI 지원</a>
+            <a class="navbar-brand" href="/chat/">🚀 Boss Baby AI</a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/chat/">채팅</a>
                 <a class="nav-link" href="/my-chats/">내 채팅</a>
