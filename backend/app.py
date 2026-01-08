@@ -16,6 +16,9 @@ from langchain_community.retrievers import TavilySearchAPIRetriever
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, AIMessage 
 from typing import List
+from backend.database import save_chat
+
+
 
 warnings.filterwarnings("ignore")
 load_dotenv()
@@ -483,32 +486,35 @@ async def root():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-    """
-    채팅 API 엔드포인트
-    - question: 사용자 질문
-    - 반환: answer(답변), source_type(내부RAG/웹검색/fallback)
-    """
     try:
         question = request.question.strip()
         chat_history = request.chat_history
+
         if not question:
             raise HTTPException(status_code=400, detail="질문이 비어있습니다.")
-        
+
         print(f"\n{'='*60}")
         print(f"[API 요청] {question}")
         print(f"[API 요청] 히스토리 길이: {len(chat_history)}")
         print(f"{'='*60}")
-        
-        answer, source_type = multi_query_rag_with_qt(question,chat_history)
-        
-        print(f"[API 응답] source_type: {source_type}")
-        print(f"[API 응답] answer 길이: {len(answer)}")
-        
+
+        # 🔑 기본값 먼저 선언 (중요)
+        source_type = "unknown"
+
+        # 사용자 질문 저장
+        save_chat(role="user", content=question)
+
+        answer, source_type = multi_query_rag_with_qt(question, chat_history)
+
+        # AI 응답 저장
+        save_chat(role="assistant", content=answer)
+
         return ChatResponse(answer=answer, source_type=source_type)
-        
+
     except Exception as e:
         print(f"[API 오류] {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/health")
 async def health_check():

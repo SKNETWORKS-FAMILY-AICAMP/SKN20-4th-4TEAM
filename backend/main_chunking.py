@@ -12,6 +12,15 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from dotenv import load_dotenv
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent  # backend/
+DATA_PATH = BASE_DIR.parent / "data" / "dataset.json"
+
+with open(DATA_PATH, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+
 # 경고메세지 삭제
 warnings.filterwarnings('ignore')
 load_dotenv()
@@ -161,8 +170,9 @@ print("=" * 60)
 print("1단계: JSON → Document 변환")
 print("=" * 60)
 
-with open("../data/dataset.json", "r", encoding="utf-8") as f:
+with open(DATA_PATH, "r", encoding="utf-8") as f:
     data = json.load(f)
+
 documents = []
 
 # announcement 처리
