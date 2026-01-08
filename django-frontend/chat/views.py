@@ -39,139 +39,114 @@ def chat_page(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def register_view(request):
-    """회원가입 API"""
+    """회원가입 API (username + password만 사용)"""
     try:
-        data = json.loads(request.body)
+        # JSON / form 모두 처리
+        if request.content_type == "application/json":
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+
+        print("[REGISTER] data:", data)
+
         username = data.get('username', '').strip()
-        email = data.get('email', '').strip()
         password = data.get('password', '').strip()
-        password_confirm = data.get('password_confirm', '').strip()
-        
-        # 입력값 검증
-        if not all([username, email, password, password_confirm]):
+
+        if not username or not password:
             return JsonResponse({
-                'error': '모든 필드를 입력해주세요.'
+                'error': '아이디와 비밀번호를 입력해주세요.'
             }, status=400)
-        
-        # 사용자명 검증 (영문, 숫자, _ 만 허용, 3-20자)
+
+        # 사용자명 규칙
         if not re.match(r'^[a-zA-Z0-9_]{3,20}$', username):
             return JsonResponse({
-                'error': '사용자명은 영문, 숫자, _만 사용하여 3-20자로 입력해주세요.'
+                'error': '아이디는 영문, 숫자, _만 사용하여 3-20자로 입력해주세요.'
             }, status=400)
-        
-        # 이메일 검증
-        try:
-            validate_email(email)
-        except ValidationError:
+
+        # 비밀번호 규칙
+        if len(password) < 8:
             return JsonResponse({
-                'error': '유효한 이메일 주소를 입력해주세요.'
+                'error': '비밀번호는 최소 8자 이상이어야 합니다.'
             }, status=400)
-        
-        # 비밀번호 확인
-        if password != password_confirm:
-            return JsonResponse({
-                'error': '비밀번호가 일치하지 않습니다.'
-            }, status=400)
-        
-        # 비밀번호 강도 검증 (최소 8자, 영문+숫자 포함)
-        if len(password) < 8 or not re.search(r'[A-Za-z]', password) or not re.search(r'\d', password):
-            return JsonResponse({
-                'error': '비밀번호는 최소 8자이며, 영문과 숫자를 포함해야 합니다.'
-            }, status=400)
-        
-        # 중복 사용자명 확인
+
+        # 중복 아이디 검사
         if User.objects.filter(username=username).exists():
             return JsonResponse({
-                'error': '이미 사용 중인 사용자명입니다.'
+                'error': '이미 사용 중인 아이디입니다.'
             }, status=400)
-        
-        # 중복 이메일 확인
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({
-                'error': '이미 사용 중인 이메일 주소입니다.'
-            }, status=400)
-        
-        # 사용자 생성
+
+        # 사용자 생성 (email은 비워둠)
         user = User.objects.create_user(
             username=username,
-            email=email,
             password=password
         )
-        
-        print(f"[Django] 새 사용자 생성: {username}")
-        
-        # 자동 로그인
+
         login(request, user)
-        
+        print(f"[REGISTER] 사용자 생성 성공: {username}")
+
         return JsonResponse({
             'success': True,
             'message': '회원가입이 완료되었습니다.',
             'user': {
                 'id': user.id,
-                'username': user.username,
-                'email': user.email
+                'username': user.username
             }
         })
-        
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'error': '잘못된 요청 형식입니다.'
-        }, status=400)
+
     except Exception as e:
-        print(f"[Django] 회원가입 오류: {e}")
-        return JsonResponse({
-            'error': f'서버 오류가 발생했습니다: {str(e)}'
-        }, status=500)
+        print("[REGISTER ERROR]", e)
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def login_view(request):
     """로그인 API"""
     try:
-        data = json.loads(request.body)
+        if request.content_type == "application/json":
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+
+        print("[LOGIN] data:", data)
+
         username = data.get('username', '').strip()
         password = data.get('password', '').strip()
-        
+
         if not username or not password:
             return JsonResponse({
-                'error': '사용자명과 비밀번호를 입력해주세요.'
+                'error': '아이디와 비밀번호를 입력해주세요.'
             }, status=400)
-        
-        # 사용자 인증
+
         user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                print(f"[Django] 사용자 로그인: {username}")
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': '로그인되었습니다.',
-                    'user': {
-                        'id': user.id,
-                        'username': user.username,
-                        'email': user.email
-                    }
-                })
-            else:
-                return JsonResponse({
-                    'error': '비활성화된 계정입니다.'
-                }, status=400)
-        else:
+
+        if user is None:
             return JsonResponse({
-                'error': '사용자명 또는 비밀번호가 올바르지 않습니다.'
+                'error': '아이디 또는 비밀번호가 올바르지 않습니다.'
             }, status=400)
-            
-    except json.JSONDecodeError:
+
+        login(request, user)
+        print(f"[LOGIN] 로그인 성공: {username}")
+        last_session = ChatSession.objects.filter(
+        user_identifier=user.username,
+        is_active=True
+        ).order_by('-updated_at').first()
+
+        if last_session:
+            request.session['chat_session_id'] = str(last_session.session_id)
         return JsonResponse({
-            'error': '잘못된 요청 형식입니다.'
-        }, status=400)
+            'success': True,
+            'message': '로그인되었습니다.',
+            'user': {
+                'id': user.id,
+                'username': user.username
+            }
+        })
+
     except Exception as e:
-        print(f"[Django] 로그인 오류: {e}")
-        return JsonResponse({
-            'error': f'서버 오류가 발생했습니다: {str(e)}'
-        }, status=500)
+        print("[LOGIN ERROR]", e)
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -232,6 +207,12 @@ def get_or_create_session(request):
     # 로그인한 사용자면 username 사용, 아니면 세션키 사용
     if request.user.is_authenticated:
         user_identifier = request.user.username
+        old_session_id = request.session.get('chat_session_id')
+        if old_session_id:
+            ChatSession.objects.filter(
+            session_id=old_session_id
+            ).update(user_identifier=user_identifier)
+        
     else:
         user_identifier = request.session.session_key or str(uuid.uuid4())[:8]
     
@@ -280,17 +261,22 @@ def chat_api(request):
             
             # 3. FastAPI에 전달
             print(f"[Django] FastAPI 호출 중...")
+            fastapi_session_id = request.session.get("fastapi_session_id")
             response = requests.post(
                 f"{FASTAPI_URL}/chat",
                 json={
                     'question': question,
-                    'chat_history': chat_history  # 👈 히스토리 전달
+                    'chat_history': chat_history,  # 👈 히스토리 전달
+                    "session_id": fastapi_session_id,
                 },
                 timeout=120  # 2분 (RAG 처리 시간)
             )
             
             if response.ok:
                 result = response.json()
+                if result.get("session_id") is not None:
+                    request.session["fastapi_session_id"] = result["session_id"]
+                    
                 ai_answer = result.get('answer', '')
                 source_type = result.get('source_type', 'unknown')
                 

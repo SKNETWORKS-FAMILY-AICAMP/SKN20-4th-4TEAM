@@ -1084,6 +1084,31 @@
             window.location.href = '/mypage/';
         }
     </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  fetch("/api/history/")
+    .then(response => response.json())
+    .then(data => {
+      if (!data.messages || data.messages.length === 0) return;
+
+      // 👇 기존 환영 메시지 제거
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        if (msg.type === "user") {
+          addMessage(msg.content, "user");
+        } else if (msg.type === "bot") {
+          addMessage(msg.content, "bot", msg.source_type);
+        }
+      });
+    })
+    .catch(err => {
+      console.error("채팅 히스토리 불러오기 실패:", err);
+    });
+});
+</script>
+
 
 
 </body>

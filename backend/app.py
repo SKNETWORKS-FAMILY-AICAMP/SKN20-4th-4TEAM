@@ -16,7 +16,14 @@ from langchain_community.retrievers import TavilySearchAPIRetriever
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, AIMessage 
 from typing import List
-from backend.database import save_chat
+from backend.database import save_chat, create_chat_session
+from sqlalchemy import text
+from backend.database import (
+    get_user_by_email,
+    create_user,
+    verify_password,
+    engine
+)
 
 
 
@@ -50,6 +57,12 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     question: str
     chat_history: List[dict] = []
+    session_id: int | None = None
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+    session_id: int | None = None
 
 class ChatResponse(BaseModel):
     answer: str
@@ -498,23 +511,89 @@ async def chat(request: ChatRequest):
         print(f"[API 요청] 히스토리 길이: {len(chat_history)}")
         print(f"{'='*60}")
 
-        # 🔑 기본값 먼저 선언 (중요)
+        # ✅ 1. session_id 먼저 확보
+        session_id = request.session_id
+        if session_id is None:
+            session_id = create_chat_session()
+            print(f"[세션 생성] session_id={session_id}")
+
         source_type = "unknown"
 
-        # 사용자 질문 저장
-        save_chat(role="user", content=question)
+        # ✅ 2. 이제 session_id 사용 가능
+        save_chat(
+            session_id=session_id,
+            role="user",
+            content=question
+        )
 
         answer, source_type = multi_query_rag_with_qt(question, chat_history)
 
-        # AI 응답 저장
-        save_chat(role="assistant", content=answer)
+        save_chat(
+            session_id=session_id,
+            role="assistant",
+            content=answer,
+            source_type=source_type
+        )
 
-        return ChatResponse(answer=answer, source_type=source_type)
+        return {
+            "answer": answer,
+            "source_type": source_type,
+            "session_id": session_id
+        }
 
     except Exception as e:
         print(f"[API 오류] {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/chat/history/{session_id}")
+def get_chat_history(session_id: int):
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("""
+                SELECT role, content
+                FROM chat_log
+                WHERE session_id = :sid
+                ORDER BY created_at
+            """),
+            {"sid": session_id}
+        )
+
+        rows = result.fetchall()
+
+    return [
+        {"role": r.role, "content": r.content}
+        for r in rows
+    ]
+
+@app.post("/login")
+def login(request: LoginRequest):
+    user = get_user_by_email(request.email)
+
+    # 1️⃣ 회원 없으면 자동 회원가입 (정책상 OK라면)
+    if user is None:
+        user_id = create_user(request.email, request.password)
+    else:
+        # 2️⃣ 비밀번호 검증
+        if not verify_password(request.password, user.password_hash):
+            raise HTTPException(status_code=401, detail="비밀번호가 올바르지 않습니다.")
+        user_id = user.user_id
+
+    # 3️⃣ session_id가 있으면 세션에 user_id 연결
+    if request.session_id:
+        with engine.connect() as conn:
+            conn.execute(
+                text("""
+                    UPDATE chat_sessions
+                    SET user_id = :uid
+                    WHERE session_id = :sid
+                """),
+                {"uid": user_id, "sid": request.session_id}
+            )
+            conn.commit()
+
+    return {
+        "user_id": user_id
+    }
 
 @app.get("/health")
 async def health_check():
