@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 | 스타트업 지원 AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.9);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+        }
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 25px;
+        }
+        .list-group-item {
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .badge {
+            border-radius: 15px;
+        }
+        .completion-bar {
+            height: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/chat/">
+                <i class="fas fa-rocket text-primary"></i> 스타트업 AI 지원
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chat/">채팅</a>
+                <a class="nav-link" href="/my-chats/">내 채팅</a>
+                <a class="nav-link active fw-bold" href="/mypage/">마이페이지</a>
+                <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        {% if error %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <!-- 사용자 정보 섹션 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-4">
+                        <div class="avatar-circle bg-primary text-white mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 class="card-title">{{ user.get_full_name|default:user.username }}님</h3>
+                        <p class="text-muted">{{ user.email }}</p>
+                        <p class="text-muted">가입일: {{ user.date_joined|date:"Y년 m월 d일" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 통계 카드 섹션 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-file-alt fa-3x mb-3"></i>
+                        <h3>{{ total_plans }}</h3>
+                        <p class="mb-0">총 사업계획서</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card stat-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-comments fa-3x mb-3"></i>
+                        <h3>{{ recent_sessions|length }}</h3>
+                        <p class="mb-0">최근 상담 세션</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 빠른 액션 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-bolt text-primary"></i> 빠른 액션</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="/business-plans/create/" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> 새 사업계획서 작성
+                            </a>
+                            <a href="/business-plans/" class="btn btn-outline-primary">
+                                <i class="fas fa-list"></i> 내 사업계획서 보기
+                            </a>
+                            <a href="/chat/" class="btn btn-outline-primary">
+                                <i class="fas fa-comments"></i> 창업 상담하기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최근 사업계획서 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-file-alt text-primary"></i> 최근 사업계획서</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_plans %}
+                            <div class="list-group list-group-flush">
+                                {% for plan in recent_plans %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">
+                                                    <a href="/business-plans/{{ plan.id }}/" class="text-decoration-none">
+                                                        {{ plan.title }}
+                                                    </a>
+                                                </h6>
+                                                <p class="mb-1 text-muted small">{{ plan.business_name }}</p>
+                                                <div class="progress completion-bar mb-1">
+                                                    <div class="progress-bar" style="width: {{ plan.completion_percentage }}%"></div>
+                                                </div>
+                                                <small class="text-muted">{{ plan.updated_at|date:"m월 d일" }}</small>
+                                            </div>
+                                            <span class="badge bg-secondary">{{ plan.get_business_type_display }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/business-plans/" class="btn btn-outline-primary btn-sm">전체 보기</a>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-file-plus fa-3x mb-3"></i>
+                                <p>아직 작성된 사업계획서가 없습니다.</p>
+                                <a href="/business-plans/create/" class="btn btn-primary">
+                                    첫 번째 사업계획서 작성하기
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최근 창업 상담 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-comments text-primary"></i> 최근 창업 상담</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_sessions %}
+                            <div class="list-group list-group-flush">
+                                {% for session in recent_sessions %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">{{ session.title }}</h6>
+                                                <small class="text-muted">
+                                                    {{ session.message_count }}개 메시지 • {{ session.updated_at|date:"m월 d일" }}
+                                                </small>
+                                            </div>
+                                            {% if session.is_active %}
+                                                <span class="badge bg-success">진행중</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">완료</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/my-chats/" class="btn btn-outline-primary btn-sm">전체 보기</a>
+                            </div>
+                        {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-comments fa-3x mb-3"></i>
+                                <p>아직 창업 상담 기록이 없습니다.</p>
+                                <a href="/chat/" class="btn btn-primary">
+                                    창업 상담 시작하기
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -519,6 +519,46 @@ async def health_check():
         "web_search": "enabled" if TAVILY_API_KEY else "disabled"
     }
 
+@app.post("/analyze", response_model=ChatResponse)
+async def analyze(request: ChatRequest):
+    """
+    사업계획서 AI 전문가 분석 엔드포인트
+    - question: 분석할 사업계획서 내용
+    - 반환: answer(분석 결과), source_type("ai-analysis")
+    """
+    try:
+        question = request.question.strip()
+        if not question:
+            raise HTTPException(status_code=400, detail="분석할 내용이 비어있습니다.")
+        
+        print(f"\n{'='*60}")
+        print(f"[분석 API 요청] 질문 길이: {len(question)} 문자")
+        print(f"{'='*60}")
+        
+        # 분석용 시스템 프롬프트
+        analysis_system_prompt = """당신은 20년 경력의 벤처 투자 전문가이자 사업 컨설턴트입니다. 
+사업계획서를 철저히 분석하고 구체적이고 실용적인 조언을 제공합니다."""
+        
+        # 기존 llm 객체 사용
+        analysis_prompt = ChatPromptTemplate.from_messages([
+            ("system", analysis_system_prompt),
+            ("human", "{question}")
+        ])
+        
+        analysis_chain = analysis_prompt | llm | StrOutputParser()
+        
+        # 분석 실행
+        answer = analysis_chain.invoke({"question": question})
+        
+        print(f"[분석 API 응답] 분석 결과 길이: {len(answer)} 문자")
+        
+        return ChatResponse(answer=answer, source_type="ai-analysis")
+        
+    except Exception as e:
+        print(f"[분석 API 오류] {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"분석 중 오류 발생: {str(e)}")
 
 # ========================================
 # 서버 실행

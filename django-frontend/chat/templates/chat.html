@@ -656,6 +656,9 @@
 
             <!-- 사용자 섹션 -->
             <div class="user-section">
+                <button class="logout-btn" onclick="goToMyPage()" title="마이페이지" style="margin-bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <span class="logout-icon">👤</span> 마이페이지
+                </button>
                 <button class="logout-btn" onclick="logout()" title="로그아웃">
                     <span class="logout-icon">🚪</span> 로그아웃
                 </button>
@@ -760,7 +763,7 @@
             const statusText = document.getElementById('serverStatusText');
             
             try {
-                const response = await fetch('/api/health/', {  // 👈 Django API로 변경
+                const response = await fetch('http://localhost:8000/health', {  // 직접 FastAPI 호출
                     method: 'GET',
                     timeout: 5000
                 });
@@ -1041,6 +1044,10 @@
                 // 오류가 발생해도 로그인 페이지로 이동
                 window.location.href = '/';
             }
+        }
+
+        function goToMyPage() {
+            window.location.href = '/mypage/';
         }
     </script>
 

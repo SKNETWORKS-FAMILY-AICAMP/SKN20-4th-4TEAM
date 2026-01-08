@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 전문가 분석 결과 | {{ plan.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+            margin-bottom: 25px;
+        }
+        
+        /* 헤더 */
+        .analysis-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+        }
+        .analysis-header h2 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .analysis-header p {
+            opacity: 0.95;
+            margin: 0;
+        }
+        
+        /* 점수 카드 */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .score-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        .score-card:hover {
+            transform: translateY(-5px);
+        }
+        .score-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+        .score-label {
+            color: #7f8c8d;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        /* 색상별 점수 */
+        .score-excellent { color: #27ae60; }
+        .score-good { color: #3498db; }
+        .score-average { color: #f39c12; }
+        .score-poor { color: #e74c3c; }
+        
+        /* 섹션 */
+        .analysis-section {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        .section-icon {
+            margin-right: 10px;
+        }
+        
+        /* 리스트 아이템 */
+        .strength-item, .weakness-item, .risk-item {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+        .strength-item {
+            background: #d4edda;
+            border-left: 4px solid #27ae60;
+            color: #155724;
+        }
+        .weakness-item {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            color: #856404;
+        }
+        .risk-item {
+            background: #f8d7da;
+            border-left: 4px solid #e74c3c;
+            color: #721c24;
+        }
+        
+        /* 개선 제안 탭 */
+        .suggestions-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .suggestion-tab {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .suggestion-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        .suggestion-content {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            line-height: 1.8;
+        }
+        .suggestion-content.active {
+            display: block;
+        }
+        
+        /* 종합 의견 */
+        .conclusion-box {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        
+        /* 버튼 */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        .btn-outline-secondary {
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        
+        /* 원형 프로그레스 */
+        .circular-progress {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/chat/">스타트업 AI 지원</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chat/">채팅</a>
+                <a class="nav-link" href="/my-chats/">내 채팅</a>
+                <a class="nav-link" href="/business-plans/">사업계획서</a>
+                <a class="nav-link" href="/mypage/">마이페이지</a>
+                <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- 헤더 -->
+        <div class="analysis-header">
+            <h2>📊 AI 전문가 분석 결과</h2>
+            <p>{{ plan.business_name }} · {{ plan.title }}</p>
+        </div>
+
+        <!-- 종합 점수 -->
+        {% if analysis.scores %}
+        <div class="score-grid">
+            {% for score_name, score_value in analysis.scores.items %}
+            <div class="score-card">
+                <div class="score-label">{{ score_name }}</div>
+                <div class="score-number {% if score_value >= 80 %}score-excellent{% elif score_value >= 60 %}score-good{% elif score_value >= 40 %}score-average{% else %}score-poor{% endif %}">
+                    {{ score_value }}
+                </div>
+                <div style="font-size: 0.9rem; color: #95a5a6;">/ 100점</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 시장 동향 분석 -->
+        {% if analysis.market_analysis %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">📈</span> 시장 동향 분석
+            </h3>
+            <div style="white-space: pre-wrap; line-height: 1.8;">{{ analysis.market_analysis }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 실현 가능성 평가 -->
+        {% if analysis.feasibility %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">🎯</span> 실현 가능성 평가
+            </h3>
+            <div style="white-space: pre-wrap; line-height: 1.8;">{{ analysis.feasibility }}</div>
+        </div>
+        {% endif %}
+
+        <!-- 강점 분석 -->
+        {% if analysis.strengths %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">✅</span> 강점 분석
+            </h3>
+            {% for strength in analysis.strengths %}
+            <div class="strength-item">
+                <strong>{{ forloop.counter }}.</strong> {{ strength }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 보완 필요 사항 -->
+        {% if analysis.weaknesses %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">⚠️</span> 보완 필요 사항
+            </h3>
+            {% for weakness in analysis.weaknesses %}
+            <div class="weakness-item">
+                <strong>{{ forloop.counter }}.</strong> {{ weakness }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 리스크 요인 -->
+        {% if analysis.risks %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">🚨</span> 리스크 요인
+            </h3>
+            {% for risk in analysis.risks %}
+            <div class="risk-item">
+                <strong>{{ forloop.counter }}.</strong> {{ risk }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 개선 제안 -->
+        {% if analysis.suggestions %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">💡</span> 개선 제안
+            </h3>
+            <div class="suggestions-tabs">
+                <div class="suggestion-tab active" data-tab="short">단기 개선안</div>
+                <div class="suggestion-tab" data-tab="mid">중기 개선안</div>
+                <div class="suggestion-tab" data-tab="long">장기 전략</div>
+            </div>
+            
+            <div class="suggestion-content active" id="short">
+                <div style="white-space: pre-wrap; line-height: 1.8;">{{ analysis.suggestions.short_term }}</div>
+            </div>
+            <div class="suggestion-content" id="mid">
+                <div style="white-space: pre-wrap; line-height: 1.8;">{{ analysis.suggestions.mid_term }}</div>
+            </div>
+            <div class="suggestion-content" id="long">
+                <div style="white-space: pre-wrap; line-height: 1.8;">{{ analysis.suggestions.long_term }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 종합 의견 -->
+        {% if analysis.conclusion %}
+        <div class="analysis-section">
+            <h3 class="section-title">
+                <span class="section-icon">📝</span> 종합 의견
+            </h3>
+            <div class="conclusion-box">
+                {{ analysis.conclusion }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 원본 텍스트 (디버깅용, 실제 배포시 제거 가능) -->
+        {% if raw_analysis and False %}
+        <div class="analysis-section">
+            <h3 class="section-title">원본 분석 텍스트</h3>
+            <pre style="white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-radius: 10px;">{{ raw_analysis }}</pre>
+        </div>
+        {% endif %}
+
+        <!-- 하단 버튼 -->
+        <div class="d-flex gap-2 justify-content-between mt-4">
+            <a href="{% url 'business_plan_detail' plan.id %}" class="btn btn-outline-secondary">
+                ← 사업계획서로 돌아가기
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{% url 'business_plan_analyze' plan.id %}" class="btn btn-outline-secondary">
+                    🔄 재분석
+                </a>
+                <button onclick="window.print()" class="btn btn-primary">
+                    🖨️ 인쇄하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        }
+
+        // 개선 제안 탭 전환
+        document.querySelectorAll('.suggestion-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // 모든 탭과 콘텐츠 비활성화
+                document.querySelectorAll('.suggestion-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.suggestion-content').forEach(c => c.classList.remove('active'));
+                
+                // 선택한 탭과 콘텐츠 활성화
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

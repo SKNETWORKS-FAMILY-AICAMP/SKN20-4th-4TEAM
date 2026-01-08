@@ -24,4 +24,14 @@ urlpatterns = [
     
     # 채팅 내역 페이지
     path('my-chats/', views.my_chats, name='my_chats'),
+    
+    # 마이페이지
+    path('mypage/', views.my_page, name='mypage'),
+    path('business-plans/', views.business_plan_list, name='business_plan_list'),
+    path('business-plans/create/', views.business_plan_create, name='business_plan_create'),
+    path('business-plans/analysis/', views.business_plan_analysis, name='business_plan_analysis'),
+    path('business-plans/<int:plan_id>/', views.business_plan_detail, name='business_plan_detail'),
+    path('business-plans/<int:plan_id>/delete/', views.business_plan_delete, name='business_plan_delete'),
+
+    path('business-plans/<int:plan_id>/analyze/', views.business_plan_analyze, name='business_plan_analyze'),
 ]

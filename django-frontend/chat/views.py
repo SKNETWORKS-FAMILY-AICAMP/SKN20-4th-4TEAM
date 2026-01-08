@@ -1,5 +1,5 @@
 # chat/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from .models import ChatSession, ChatMessage
+from .models import ChatSession, ChatMessage, BusinessPlan
 import requests
 import json
 import time
@@ -499,3 +499,395 @@ def my_chats(request):
             'error': f"채팅 기록을 불러오는 중 오류가 발생했습니다: {str(e)}",
             'user': request.user
         })
+
+
+# ========================================
+# 마이페이지 관련 Views
+# ========================================
+
+# chat/views.py의 business_plan_create 함수 수정 버전
+# 기존 함수를 이것으로 교체하세요
+
+@login_required
+def business_plan_create(request):
+    """사업계획서 생성"""
+    if request.method == 'POST':
+        try:
+            # 기본 정보
+            title = request.POST.get('title', '새로운 사업계획서')
+            business_name = request.POST.get('business_name', '')
+            business_type = request.POST.get('business_type', 'tech')
+            current_stage = request.POST.get('current_stage', 'idea')
+            
+            # 입력 필드
+            business_idea = request.POST.get('business_idea', '')
+            main_product = request.POST.get('main_product', '')
+            target_customer = request.POST.get('target_customer', '')
+            differentiation = request.POST.get('differentiation', '')
+            revenue_plan = request.POST.get('revenue_plan', '')
+            
+            # 재무 정보 (선택사항)
+            required_funding = request.POST.get('required_funding', '')
+            if required_funding:
+                required_funding = int(required_funding.replace(',', ''))
+            else:
+                required_funding = None
+            
+            # 사업계획서 생성
+            plan = BusinessPlan.objects.create(
+                user=request.user,
+                title=title,
+                business_name=business_name,
+                business_type=business_type,
+                current_stage=current_stage,
+                business_idea=business_idea,
+                main_product=main_product,
+                target_customer=target_customer,
+                differentiation=differentiation,
+                revenue_plan=revenue_plan,
+                required_funding=required_funding
+            )
+            
+            return redirect('business_plan_detail', plan_id=plan.id)
+            
+        except ValueError as e:
+            return render(request, 'business_plan_create.html', {
+                'error': f'입력값 오류: {str(e)}'
+            })
+        except Exception as e:
+            return render(request, 'business_plan_create.html', {
+                'error': f'사업계획서 생성 중 오류가 발생했습니다: {str(e)}'
+            })
+    
+    return render(request, 'business_plan_create.html')
+
+@login_required
+def my_page(request):
+    """마이페이지"""
+    try:
+        # 사용자의 사업계획서 목록
+        business_plans = BusinessPlan.objects.filter(user=request.user).order_by('-updated_at')[:5]
+        total_plans = BusinessPlan.objects.filter(user=request.user).count()
+        completed_plans = BusinessPlan.objects.filter(user=request.user, is_complete=True).count()
+        
+        # 최근 채팅 기록
+        user_sessions = ChatSession.objects.filter(
+            user_identifier=request.user.username
+        ).order_by('-updated_at')[:5]
+        
+        return render(request, 'mypage.html', {
+            'recent_plans': business_plans,
+            'total_plans': total_plans,
+            'completed_plans': completed_plans,
+            'recent_sessions': user_sessions
+        })
+    except Exception as e:
+        return render(request, 'mypage.html', {
+            'error': f'마이페이지 로딩 중 오류가 발생했습니다: {str(e)}'
+        })
+
+@login_required
+def business_plan_list(request):
+    """사업계획서 목록"""
+    try:
+        plans = BusinessPlan.objects.filter(user=request.user).order_by('-updated_at')
+        return render(request, 'business_plan_list.html', {
+            'plans': plans
+        })
+    except Exception as e:
+        return render(request, 'business_plan_list.html', {
+            'plans': [],
+            'error': f'사업계획서 목록을 불러오는 중 오류가 발생했습니다: {str(e)}'
+        })
+
+@login_required
+def business_plan_detail(request, plan_id):
+    """사업계획서 상세/편집"""
+    plan = get_object_or_404(BusinessPlan, id=plan_id, user=request.user)
+    
+    if request.method == 'POST':
+        try:
+            # 기본 정보 업데이트
+            plan.title = request.POST.get('title', plan.title)
+            plan.business_name = request.POST.get('business_name', plan.business_name)
+            plan.business_type = request.POST.get('business_type', plan.business_type)
+            plan.current_stage = request.POST.get('current_stage', plan.current_stage)
+            
+            # AI 입력용 기본 정보 업데이트
+            plan.business_idea = request.POST.get('business_idea', plan.business_idea)
+            plan.main_product = request.POST.get('main_product', plan.main_product)
+            plan.target_customer = request.POST.get('target_customer', plan.target_customer)
+            plan.differentiation = request.POST.get('differentiation', plan.differentiation)
+            plan.revenue_plan = request.POST.get('revenue_plan', plan.revenue_plan)
+            
+            # AI 생성 컨텐츠 업데이트
+            plan.executive_summary = request.POST.get('executive_summary', plan.executive_summary)
+            plan.business_model = request.POST.get('business_model', plan.business_model)
+            plan.target_market = request.POST.get('target_market', plan.target_market)
+            plan.competitive_advantage = request.POST.get('competitive_advantage', plan.competitive_advantage)
+            
+            # 재무 정보 업데이트
+            for field in ['required_funding', 'expected_revenue_year1', 'expected_revenue_year3']:
+                value = request.POST.get(field, '')
+                if value:
+                    try:
+                        setattr(plan, field, int(value.replace(',', '')))
+                    except ValueError:
+                        setattr(plan, field, None)
+                else:
+                    setattr(plan, field, None)
+            
+            # 완료 여부 업데이트
+            plan.is_complete = bool(request.POST.get('is_complete'))
+            
+            plan.save()
+            
+            return render(request, 'business_plan_detail.html', {
+                'plan': plan,
+                'success': '사업계획서가 성공적으로 저장되었습니다.'
+            })
+            
+        except Exception as e:
+            return render(request, 'business_plan_detail.html', {
+                'plan': plan,
+                'error': f'저장 중 오류가 발생했습니다: {str(e)}'
+            })
+    
+    return render(request, 'business_plan_detail.html', {
+        'plan': plan
+    })
+
+@login_required
+def business_plan_delete(request, plan_id):
+    """사업계획서 삭제"""
+    if request.method == 'POST':
+        try:
+            plan = get_object_or_404(BusinessPlan, id=plan_id, user=request.user)
+            plan.delete()
+            return JsonResponse({'success': True, 'message': '사업계획서가 삭제되었습니다.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'POST 방식만 지원됩니다.'})
+
+@login_required
+def business_plan_analysis(request):
+    """AI 분석 결과 표시 페이지"""
+    return render(request, 'business_plan_analysis.html')
+
+@login_required
+def business_plan_analyze(request, plan_id):
+    """AI 전문가가 사업계획서를 분석"""
+    plan = get_object_or_404(BusinessPlan, id=plan_id, user=request.user)
+    
+    # 분석할 내용이 충분한지 확인
+    if not plan.business_idea or not plan.main_product:
+        return redirect('business_plan_detail', plan_id=plan_id)
+    
+    try:
+        # AI 분석 프롬프트 생성
+        analysis_prompt = f"""
+당신은 20년 경력의 벤처 투자 전문가이자 사업 컨설턴트입니다.
+다음 사업계획서를 전문가 관점에서 철저히 분석하고 평가해주세요.
+
+[사업 기본 정보]
+- 사업명: {plan.business_name}
+- 분야: {plan.get_business_type_display()}
+- 단계: {plan.get_current_stage_display()}
+
+[사업 내용]
+- 사업 아이디어: {plan.business_idea}
+- 주요 제품/서비스: {plan.main_product}
+- 타겟 고객: {plan.target_customer}
+- 차별화 포인트: {plan.differentiation}
+{f"- 수익 모델: {plan.revenue_plan}" if plan.revenue_plan else ""}
+
+[작성된 사업계획서]
+- 사업개요: {plan.executive_summary if plan.executive_summary else "미작성"}
+- 비즈니스모델: {plan.business_model if plan.business_model else "미작성"}
+- 목표시장: {plan.target_market if plan.target_market else "미작성"}
+- 경쟁우위: {plan.competitive_advantage if plan.competitive_advantage else "미작성"}
+
+다음 형식으로 상세히 분석해주세요:
+
+=== 종합 점수 ===
+투자매력도: [0-100점]
+시장성: [0-100점]
+실현가능성: [0-100점]
+차별성: [0-100점]
+완성도: [0-100점]
+
+=== 시장 동향 분석 ===
+[해당 업종의 시장 규모, 성장률, 최근 트렌드를 구체적으로 분석]
+- 시장 규모:
+- 성장률:
+- 주요 트렌드:
+- 경쟁 환경:
+
+=== 실현 가능성 평가 ===
+[기술적, 재무적, 시장 진입 가능성을 평가]
+- 기술적 실현 가능성:
+- 자금 조달 현실성:
+- 시장 진입 장벽:
+- 예상 타임라인 적정성:
+
+=== 강점 분석 ===
+1. [구체적인 강점]
+2. [구체적인 강점]
+3. [구체적인 강점]
+
+=== 보완 필요 사항 ===
+1. [구체적인 약점 및 개선 방향]
+2. [구체적인 약점 및 개선 방향]
+3. [구체적인 약점 및 개선 방향]
+
+=== 리스크 요인 ===
+1. [주요 리스크 요인과 대응 방안]
+2. [주요 리스크 요인과 대응 방안]
+3. [주요 리스크 요인과 대응 방안]
+
+=== 개선 제안 ===
+[단기 개선안]
+-
+
+[중기 개선안]
+-
+
+[장기 전략]
+-
+
+=== 종합 의견 ===
+[투자자/심사위원 관점에서의 종합 평가 및 조언]
+"""
+
+        print(f"[Django] AI 분석 요청 중... Plan ID: {plan_id}")
+        
+        # FastAPI에 분석 요청
+        response = requests.post(
+            f"{FASTAPI_URL}/analyze",
+            json={
+                'question': analysis_prompt,
+                'chat_history': []
+            },
+            timeout=120
+        )
+        
+        if response.ok:
+            result = response.json()
+            analysis_text = result.get('answer', '')
+            
+            print(f"[Django] AI 분석 완료")
+            
+            # 분석 결과 파싱
+            parsed_analysis = parse_analysis(analysis_text)
+            
+            return render(request, 'business_plan_analysis.html', {
+                'plan': plan,
+                'analysis': parsed_analysis,
+                'raw_analysis': analysis_text
+            })
+        else:
+            error_msg = f'분석 중 오류 발생: {response.status_code}'
+            return render(request, 'business_plan_detail.html', {
+                'plan': plan,
+                'error': error_msg
+            })
+            
+    except requests.exceptions.ConnectionError:
+        return render(request, 'business_plan_detail.html', {
+            'plan': plan,
+            'error': 'FastAPI 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.'
+        })
+    except requests.exceptions.Timeout:
+        return render(request, 'business_plan_detail.html', {
+            'plan': plan,
+            'error': 'AI 분석 시간이 초과되었습니다. 다시 시도해주세요.'
+        })
+    except Exception as e:
+        print(f"[Django] 분석 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return render(request, 'business_plan_detail.html', {
+            'plan': plan,
+            'error': f'분석 중 오류가 발생했습니다: {str(e)}'
+        })
+
+
+def parse_analysis(analysis_text):
+    """AI 분석 결과를 파싱"""
+    import re
+    
+    parsed = {
+        'scores': {},
+        'market_analysis': '',
+        'feasibility': '',
+        'strengths': [],
+        'weaknesses': [],
+        'risks': [],
+        'suggestions': {},
+        'conclusion': ''
+    }
+    
+    try:
+        # 점수 파싱
+        score_section = re.search(r'=== 종합 점수 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if score_section:
+            score_text = score_section.group(1)
+            scores = re.findall(r'([가-힣]+):\s*(\d+)', score_text)
+            for name, score in scores:
+                parsed['scores'][name] = int(score)
+        
+        # 시장 동향 분석
+        market_section = re.search(r'=== 시장 동향 분석 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if market_section:
+            parsed['market_analysis'] = market_section.group(1).strip()
+        
+        # 실현 가능성
+        feasibility_section = re.search(r'=== 실현 가능성 평가 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if feasibility_section:
+            parsed['feasibility'] = feasibility_section.group(1).strip()
+        
+        # 강점
+        strengths_section = re.search(r'=== 강점 분석 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if strengths_section:
+            strengths_text = strengths_section.group(1).strip()
+            parsed['strengths'] = [s.strip() for s in re.findall(r'\d+\.\s*(.+)', strengths_text)]
+        
+        # 보완 필요
+        weaknesses_section = re.search(r'=== 보완 필요 사항 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if weaknesses_section:
+            weaknesses_text = weaknesses_section.group(1).strip()
+            parsed['weaknesses'] = [w.strip() for w in re.findall(r'\d+\.\s*(.+)', weaknesses_text)]
+        
+        # 리스크
+        risks_section = re.search(r'=== 리스크 요인 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if risks_section:
+            risks_text = risks_section.group(1).strip()
+            parsed['risks'] = [r.strip() for r in re.findall(r'\d+\.\s*(.+)', risks_text)]
+        
+        # 개선 제안
+        suggestions_section = re.search(r'=== 개선 제안 ===\s*(.*?)(?===|$)', analysis_text, re.DOTALL)
+        if suggestions_section:
+            suggestions_text = suggestions_section.group(1).strip()
+            
+            short_term = re.search(r'\[단기 개선안\]\s*(.*?)(?=\[|$)', suggestions_text, re.DOTALL)
+            if short_term:
+                parsed['suggestions']['short_term'] = short_term.group(1).strip()
+            
+            mid_term = re.search(r'\[중기 개선안\]\s*(.*?)(?=\[|$)', suggestions_text, re.DOTALL)
+            if mid_term:
+                parsed['suggestions']['mid_term'] = mid_term.group(1).strip()
+            
+            long_term = re.search(r'\[장기 전략\]\s*(.*?)(?=\[|$)', suggestions_text, re.DOTALL)
+            if long_term:
+                parsed['suggestions']['long_term'] = long_term.group(1).strip()
+        
+        # 종합 의견
+        conclusion_section = re.search(r'=== 종합 의견 ===\s*(.*?)$', analysis_text, re.DOTALL)
+        if conclusion_section:
+            parsed['conclusion'] = conclusion_section.group(1).strip()
+        
+    except Exception as e:
+        print(f"[Django] 파싱 오류: {e}")
+    
+    return parsed

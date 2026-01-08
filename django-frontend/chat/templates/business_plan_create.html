@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 사업계획서 작성 | 스타트업 지원 AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-outline-secondary {
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        .form-control, .form-select, textarea.form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+        textarea.form-control {
+            min-height: 100px;
+            line-height: 1.6;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .required-mark {
+            color: #e74c3c;
+        }
+        .optional-mark {
+            color: #95a5a6;
+            font-size: 0.9em;
+            font-weight: 400;
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .page-header h2 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .page-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        .section-divider {
+            border-top: 2px solid #e9ecef;
+            margin: 35px 0 30px 0;
+            padding-top: 25px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .info-box h6 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-box li {
+            color: #34495e;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .char-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #95a5a6;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/chat/">스타트업 AI 지원</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chat/">채팅</a>
+                <a class="nav-link" href="/my-chats/">내 채팅</a>
+                <a class="nav-link" href="/mypage/">마이페이지</a>
+                <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <div class="page-header">
+                            <h2>새 사업계획서 작성</h2>
+                        <p>기본 정보를 입력하고 사업계획서를 작성하세요. 작성 완료 후 AI 전문가 분석을 받을 수 있습니다.</p>
+                        {% if error %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ error }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+
+                        <form method="post" id="createForm">
+                            {% csrf_token %}
+                            
+                            <!-- 기본 정보 섹션 -->
+                            <div class="section-title">📋 기본 정보</div>
+                            
+                            <div class="mb-4">
+                                <label for="title" class="form-label">
+                                    계획서 제목 <span class="required-mark">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       placeholder="예: 2025 AI 기반 교육 플랫폼 사업계획서" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="business_name" class="form-label">
+                                    사업명/회사명 <span class="required-mark">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="business_name" name="business_name" 
+                                       placeholder="예: 에듀테크 주식회사" required>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="business_type" class="form-label">
+                                        사업 분야 <span class="required-mark">*</span>
+                                    </label>
+                                    <select class="form-select" id="business_type" name="business_type" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="tech">기술창업</option>
+                                        <option value="service">서비스업</option>
+                                        <option value="manufacturing">제조업</option>
+                                        <option value="retail">유통/소매</option>
+                                        <option value="food">음식/외식</option>
+                                        <option value="education">교육</option>
+                                        <option value="healthcare">헬스케어</option>
+                                        <option value="finance">핀테크</option>
+                                        <option value="other">기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-4">
+                                    <label for="current_stage" class="form-label">
+                                        현재 단계 <span class="required-mark">*</span>
+                                    </label>
+                                    <select class="form-select" id="current_stage" name="current_stage" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="idea">아이디어 단계</option>
+                                        <option value="planning">계획 수립</option>
+                                        <option value="prototype">프로토타입</option>
+                                        <option value="mvp">MVP 개발</option>
+                                        <option value="launch">출시 준비</option>
+                                        <option value="operating">운영 중</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- 사업 개요 섹션 -->
+                            <div class="section-divider">
+                                <div class="section-title">💡 사업 개요 (AI가 참고할 정보)</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="business_idea" class="form-label">
+                                    사업 아이디어 간단 설명 <span class="required-mark">*</span>
+                                </label>
+                                <textarea class="form-control" id="business_idea" name="business_idea" 
+                                          placeholder="예: AI 기술을 활용한 맞춤형 온라인 교육 플랫폼입니다. 학생의 학습 패턴을 분석하여 개인별 최적화된 커리큘럼을 제공합니다." 
+                                          required maxlength="500" oninput="updateCharCount('business_idea', 500)"></textarea>
+                                <div class="char-count" id="business_idea_count">0 / 500자</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="main_product" class="form-label">
+                                    주요 제품/서비스 <span class="required-mark">*</span>
+                                </label>
+                                <textarea class="form-control" id="main_product" name="main_product" 
+                                          placeholder="예: AI 학습 추천 시스템, 실시간 화상 과외, 학습 진도 관리 대시보드" 
+                                          required maxlength="300" oninput="updateCharCount('main_product', 300)"></textarea>
+                                <div class="char-count" id="main_product_count">0 / 300자</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="target_customer" class="form-label">
+                                    타겟 고객 <span class="required-mark">*</span>
+                                </label>
+                                <textarea class="form-control" id="target_customer" name="target_customer" 
+                                          placeholder="예: 초·중·고등학생 및 학부모, 특히 개인 맞춤형 교육을 원하는 가정" 
+                                          required maxlength="300" oninput="updateCharCount('target_customer', 300)"></textarea>
+                                <div class="char-count" id="target_customer_count">0 / 300자</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="differentiation" class="form-label">
+                                    차별화 포인트/경쟁 우위 <span class="required-mark">*</span>
+                                </label>
+                                <textarea class="form-control" id="differentiation" name="differentiation" 
+                                          placeholder="예: 기존 온라인 강의와 달리 AI가 학생의 이해도를 실시간 분석하여 난이도를 자동 조절합니다. 특허 출원 완료." 
+                                          required maxlength="400" oninput="updateCharCount('differentiation', 400)"></textarea>
+                                <div class="char-count" id="differentiation_count">0 / 400자</div>
+                            </div>
+
+                            <!-- 재무 정보 (선택) -->
+                            <div class="section-divider">
+                                <div class="section-title">💰 재무 정보 <span class="optional-mark">(선택사항)</span></div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="required_funding" class="form-label">
+                                        필요 자금 (원) <span class="optional-mark">(선택)</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="required_funding" name="required_funding" 
+                                           placeholder="예: 50,000,000">
+                                    <small class="text-muted">초기 창업 또는 운영에 필요한 총 자금</small>
+                                </div>
+
+                                <div class="col-md-6 mb-4">
+                                    <label for="revenue_plan" class="form-label">
+                                        수익 모델 <span class="optional-mark">(선택)</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="revenue_plan" name="revenue_plan" 
+                                           placeholder="예: 월 구독료 모델 (기본 9,900원)">
+                                    <small class="text-muted">어떻게 수익을 창출할 계획인지</small>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                                <a href="/business-plans/" class="btn btn-outline-secondary">
+                                    취소
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    사업계획서 생성
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="info-box">
+                            <h6>📋 사업계획서 작성 안내</h6>
+                            <ul>
+                                <li><strong>기본정보:</strong> 사업명, 분야, 단계 등 기본 정보</li>
+                                <li><strong>사업개요:</strong> 아이디어, 제품/서비스, 타겟 고객, 차별화 포인트</li>
+                                <li><strong>재무정보:</strong> 필요 자금, 수익 모델 (선택사항)</li>
+                                <li><strong>AI 분석:</strong> 작성 완료 후 전문가 AI의 분석 및 피드백 제공</li>
+                            </ul>
+                            <p class="mb-0 mt-3" style="color: #7f8c8d;"><small>※ 정보를 상세히 입력할수록 더 정확한 AI 분석을 받을 수 있습니다</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        }
+
+        // 글자 수 카운트
+        function updateCharCount(fieldId, maxLength) {
+            const field = document.getElementById(fieldId);
+            const countEl = document.getElementById(fieldId + '_count');
+            const currentLength = field.value.length;
+            countEl.textContent = `${currentLength} / ${maxLength}자`;
+            
+            if (currentLength > maxLength * 0.9) {
+                countEl.style.color = '#e74c3c';
+            } else {
+                countEl.style.color = '#95a5a6';
+            }
+        }
+
+        // 숫자 필드 포맷팅
+        document.getElementById('required_funding')?.addEventListener('input', function() {
+            let value = this.value.replace(/[^\d]/g, '');
+            if (value) {
+                value = parseInt(value).toLocaleString();
+            }
+            this.value = value;
+        });
+
+        // 폼 유효성 검사
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            const requiredFields = [
+                'title', 'business_name', 'business_type', 'current_stage',
+                'business_idea', 'main_product', 'target_customer', 'differentiation'
+            ];
+            
+            let isValid = true;
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('⚠️ 모든 필수 항목(*)을 입력해주세요.');
+                // 첫 번째 빈 필드로 스크롤
+                const firstInvalid = document.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
+        });
+
+        // 페이지 로드 시 글자 수 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            ['business_idea', 'main_product', 'target_customer', 'differentiation'].forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    const maxLength = parseInt(field.getAttribute('maxlength'));
+                    updateCharCount(fieldId, maxLength);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

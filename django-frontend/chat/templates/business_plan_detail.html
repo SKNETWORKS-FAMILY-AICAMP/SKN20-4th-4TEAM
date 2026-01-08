@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ plan.title }} | 스타트업 지원 AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+            margin-bottom: 25px;
+        }
+        
+        /* 헤더 카드 */
+        .header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .header-card h3 {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .header-info {
+            opacity: 0.95;
+            font-size: 1rem;
+        }
+        
+        /* AI 분석 버튼 */
+        .ai-action-box {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .ai-action-box h4 {
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .ai-action-box p {
+            opacity: 0.95;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+        }
+        .btn-ai-magic {
+            background: white;
+            color: #3498db;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 40px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .btn-ai-magic:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .btn-ai-magic:disabled {
+            opacity: 0.7;
+        }
+        
+        /* 폼 스타일 */
+        .form-section {
+            margin-bottom: 30px;
+        }
+        .form-section-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+        textarea.form-control {
+            min-height: 150px;
+            line-height: 1.8;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .form-text {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* 버튼 */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        .btn-outline-secondary {
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        
+        /* 완성도 표시 */
+        .completion-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .completion-low {
+            background: #fee;
+            color: #c0392b;
+        }
+        .completion-medium {
+            background: #fef3cd;
+            color: #f39c12;
+        }
+        .completion-high {
+            background: #d4edda;
+            color: #27ae60;
+        }
+        
+        /* 탭 */
+        .nav-pills .nav-link {
+            border-radius: 12px;
+            padding: 12px 24px;
+            margin-right: 10px;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* 저장 플로팅 버튼 */
+        .floating-save {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 16px 36px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .btn-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="/chat/">스타트업 AI 지원</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/chat/">채팅</a>
+                <a class="nav-link" href="/my-chats/">내 채팅</a>
+                <a class="nav-link" href="/mypage/">마이페이지</a>
+                <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        {% if success %}
+            <div class="alert alert-success alert-dismissible fade show">
+                ✓ {{ success }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+        
+        {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show">
+                ⚠ {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+
+        <!-- 헤더 카드 -->
+        <div class="card header-card">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h3>{{ plan.title }}</h3>
+                        <div class="header-info">
+                            {{ plan.business_name }} · {{ plan.get_business_type_display }} · {{ plan.get_current_stage_display }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- AI 분석 액션박스 -->
+        <div class="ai-action-box" id="aiActionBox">
+            <h4>📊 AI 전문가 분석을 받아보세요</h4>
+            <p>작성하신 사업계획서를 20년 경력 벤처투자 전문가 AI가 분석합니다<br>
+            시장성, 실현가능성, 강점/약점, 리스크, 개선 제안을 제공합니다</p>
+            <a href="{% url 'business_plan_analyze' plan.id %}" class="btn btn-ai-magic" id="aiAnalyzeBtn">
+                📊 AI 전문가 분석 받기
+            </a>
+        </div>
+
+        <!-- 편집 폼 -->
+        <form method="post" id="planForm">
+            {% csrf_token %}
+            
+            <!-- 탭 네비게이션 -->
+            <ul class="nav nav-pills mb-4" id="planTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic" type="button">
+                        📋 기본정보
+                    </button>
+                </li>
+            </ul>
+
+            <!-- 탭 컨텐츠 -->
+            <div class="tab-content" id="planTabsContent">
+                
+                <!-- 기본정보 탭 -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <div class="form-section-title">📋 기본 정보</div>
+                            
+                            <div class="mb-4">
+                                <label for="title" class="form-label">계획서 제목</label>
+                                <input type="text" class="form-control" id="title" name="title" value="{{ plan.title }}">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="business_name" class="form-label">사업명/회사명</label>
+                                <input type="text" class="form-control" id="business_name" name="business_name" value="{{ plan.business_name }}">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label for="business_type" class="form-label">사업 분야</label>
+                                    <select class="form-select" id="business_type" name="business_type">
+                                        <option value="tech" {% if plan.business_type == 'tech' %}selected{% endif %}>기술창업</option>
+                                        <option value="service" {% if plan.business_type == 'service' %}selected{% endif %}>서비스업</option>
+                                        <option value="manufacturing" {% if plan.business_type == 'manufacturing' %}selected{% endif %}>제조업</option>
+                                        <option value="retail" {% if plan.business_type == 'retail' %}selected{% endif %}>유통/소매</option>
+                                        <option value="food" {% if plan.business_type == 'food' %}selected{% endif %}>음식/외식</option>
+                                        <option value="education" {% if plan.business_type == 'education' %}selected{% endif %}>교육</option>
+                                        <option value="healthcare" {% if plan.business_type == 'healthcare' %}selected{% endif %}>헬스케어</option>
+                                        <option value="finance" {% if plan.business_type == 'finance' %}selected{% endif %}>핀테크</option>
+                                        <option value="other" {% if plan.business_type == 'other' %}selected{% endif %}>기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-4">
+                                    <label for="current_stage" class="form-label">현재 단계</label>
+                                    <select class="form-select" id="current_stage" name="current_stage">
+                                        <option value="idea" {% if plan.current_stage == 'idea' %}selected{% endif %}>아이디어 단계</option>
+                                        <option value="planning" {% if plan.current_stage == 'planning' %}selected{% endif %}>계획 수립</option>
+                                        <option value="prototype" {% if plan.current_stage == 'prototype' %}selected{% endif %}>프로토타입</option>
+                                        <option value="mvp" {% if plan.current_stage == 'mvp' %}selected{% endif %}>MVP 개발</option>
+                                        <option value="launch" {% if plan.current_stage == 'launch' %}selected{% endif %}>출시 준비</option>
+                                        <option value="operating" {% if plan.current_stage == 'operating' %}selected{% endif %}>운영 중</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="business_idea" class="form-label">사업 아이디어 설명</label>
+                                <textarea class="form-control" id="business_idea" name="business_idea" placeholder="사업 아이디어를 구체적으로 설명해주세요">{{ plan.business_idea }}</textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="main_product" class="form-label">주요 제품/서비스</label>
+                                <textarea class="form-control" id="main_product" name="main_product" placeholder="제공할 주요 제품이나 서비스를 설명해주세요">{{ plan.main_product }}</textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="target_customer" class="form-label">타겟 고객</label>
+                                <textarea class="form-control" id="target_customer" name="target_customer" placeholder="주요 타겟 고객층을 설명해주세요">{{ plan.target_customer }}</textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="differentiation" class="form-label">차별화 포인트</label>
+                                <textarea class="form-control" id="differentiation" name="differentiation" placeholder="경쟁사 대비 차별화 요소나 경쟁 우위를 설명해주세요">{{ plan.differentiation }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- 하단 버튼 -->
+            <div class="d-flex gap-2 justify-content-between mt-4">
+                <a href="/business-plans/" class="btn btn-outline-secondary">← 목록으로</a>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_complete" id="is_complete" {% if plan.is_complete %}checked{% endif %}>
+                        <label class="form-check-label" for="is_complete">
+                            작성 완료
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">
+                        💾 저장하기
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('로그아웃 실패:', error);
+            }
+        }
+
+        // 숫자 필드 콤마 포맷팅
+        function formatNumber(input) {
+            let value = input.value.replace(/[^\d]/g, '');
+            if (value) {
+                value = parseInt(value).toLocaleString();
+            }
+            input.value = value;
+        }
+
+        // 재무 관련 입력 필드에 콤마 추가
+        ['required_funding', 'expected_revenue_year1', 'expected_revenue_year3'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', function() {
+                    formatNumber(this);
+                });
+                // 페이지 로드시 포맷팅
+                if (input.value) {
+                    formatNumber(input);
+                }
+            }
+        });
+
+        // 폼 제출 전 처리
+        document.getElementById('planForm').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('saveBtn');
+            submitBtn.innerHTML = '💾 저장 중...';
+            submitBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>
