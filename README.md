@@ -16,6 +16,35 @@
 
 ---
 
+## 💻 팀 소개
+
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="img/김태빈img.jpeg" width="180" alt="김태빈"/><br/>
+      <b>김태빈</b>
+    </td>
+    <td align="center">
+      <img src="img/정래원img.jpeg" width="180" alt="정래원"/><br/>
+      <b>정래원</b>
+    </td>
+    <td align="center">
+      <img src="img/최소영img.jpeg" width="180" alt="최소영"/><br/>
+      <b>최소영</b>
+    </td>
+    <td align="center">
+      <img src="img/최유정img.jpeg" width="180" alt="최유정"/><br/>
+      <b>최유정</b>
+    </td>
+  </tr>
+</table>
+
+</div>
+
+---
+
 ## 📌 프로젝트 소개
 
 **창업 지원 AI 어시스턴트**는 RAG(Retrieval-Augmented Generation) 기술을 활용하여 창업자들에게 맞춤형 정보를 제공하는 AI 챗봇 서비스입니다.
@@ -423,35 +452,6 @@ python manage.py migrate
 - [ ] Docker 컨테이너화
 - [ ] CI/CD 파이프라인
 - [ ] 모니터링 시스템 (로깅, 에러 추적)
-
----
-
-## 💻 팀 소개
-
-<div align="center">
-
-<table>
-  <tr>
-    <td align="center">
-      <img src="img/김태빈img.jpeg" width="180" alt="김태빈"/><br/>
-      <b>김태빈</b>
-    </td>
-    <td align="center">
-      <img src="img/정래원img.jpeg" width="180" alt="정래원"/><br/>
-      <b>정래원</b>
-    </td>
-    <td align="center">
-      <img src="img/최소영img.jpeg" width="180" alt="최소영"/><br/>
-      <b>최소영</b>
-    </td>
-    <td align="center">
-      <img src="img/최유정img.jpeg" width="180" alt="최유정"/><br/>
-      <b>최유정</b>
-    </td>
-  </tr>
-</table>
-
-</div>
 
 ---
 
