@@ -1,69 +1,284 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마이페이지 | 스타트업 지원 AI</title>
+    <title>마이페이지 | Boss Baby AI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
             min-height: 100vh;
+            background-image: url("{% static 'background.png' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
+
+        /* 네비게이션 바 */
         .navbar {
-            background: rgba(255,255,255,0.95) !important;
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%) !important;
+            border-bottom: 4px solid #0077b3;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-family: 'Impact', 'Arial Black', sans-serif;
+        }
+
+        .navbar .nav-link {
+            color: white !important;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .navbar .nav-link:hover {
+            transform: scale(1.1);
+        }
+
+        .navbar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 8px 15px;
+        }
+
+        /* 카드 스타일 */
         .card {
             border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.9);
+            border-radius: 25px;
+            box-shadow: 
+                0 8px 0 #0077b3,
+                0 12px 30px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
+            border: 3px solid #00a8e8;
+            overflow: hidden;
         }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .card-header {
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%) !important;
             color: white;
+            font-weight: 700;
+            border-bottom: 3px solid #0077b3;
         }
+
+        .card-header h5 {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header .text-primary {
+            color: white !important;
+        }
+
+        /* 통계 카드 */
+        .stat-card {
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%);
+            color: white;
+            border: 3px solid #0077b3;
+            box-shadow: 
+                0 6px 0 #0077b3,
+                0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card h3 {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card p {
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 버튼 스타일 */
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%);
+            border: 3px solid #0077b3;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 700;
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.4),
+                0 4px 0 #0077b3,
+                0 6px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
+
+        .btn-primary:hover {
+            background: linear-gradient(180deg, #8ee0ff 0%, #00b8f8 100%);
+            transform: translateY(-2px);
+            border-color: #0088cc;
+        }
+
+        .btn-primary:active {
+            transform: translateY(3px);
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.4),
+                0 1px 0 #0077b3;
+        }
+
         .btn-outline-primary {
-            border: 2px solid #667eea;
-            color: #667eea;
-            border-radius: 25px;
+            border: 3px solid #00a8e8;
+            color: #00a8e8;
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-weight: 700;
+            background: white;
+            box-shadow: 0 4px 0 #d0d0d0;
+            transition: all 0.1s;
         }
+
+        .btn-outline-primary:hover {
+            background: #00a8e8;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 프로필 아바타 */
+        .avatar-circle {
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%) !important;
+            border: 4px solid #0077b3;
+            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.4);
+        }
+
+        /* 리스트 아이템 */
         .list-group-item {
             border: none;
-            border-radius: 10px;
-            margin-bottom: 5px;
-            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px !important;
+            margin-bottom: 10px;
+            background: linear-gradient(180deg, #e8f7ff 0%, #d0efff 100%);
+            border: 2px solid #7dd3f0;
+            transition: all 0.3s;
         }
+
+        .list-group-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.3);
+        }
+
+        /* 뱃지 */
         .badge {
-            border-radius: 15px;
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-weight: 700;
         }
+
+        .badge.bg-secondary {
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%) !important;
+            border: 2px solid #0077b3;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(180deg, #7dea9d 0%, #27ae60 100%) !important;
+            border: 2px solid #1e8449;
+        }
+
+        /* 프로그레스 바 */
         .completion-bar {
-            height: 8px;
-            border-radius: 4px;
+            height: 12px;
+            border-radius: 10px;
+            background: #e0e0e0;
+            border: 2px solid #ccc;
+        }
+
+        .completion-bar .progress-bar {
+            background: linear-gradient(90deg, #7dd3f0 0%, #00a8e8 100%);
+            border-radius: 8px;
+        }
+
+        /* 텍스트 스타일 */
+        .card-title {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            color: #00a8e8;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .text-primary {
+            color: #00a8e8 !important;
+        }
+
+        /* 반짝임 효과 */
+        .shine {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.5), rgba(255,255,255,0));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .shine-1 {
+            top: 100px;
+            left: 50px;
+            animation: pulse 3s infinite;
+        }
+
+        .shine-2 {
+            bottom: 150px;
+            right: 100px;
+            animation: pulse 3s infinite 1.5s;
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
+        /* Boss Baby 캐릭터 */
+        .character-fixed {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            z-index: 100;
+            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.35));
+            transition: transform 0.3s;
+        }
+
+        .character-fixed:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .character-fixed img {
+            width: 100%;
+        }
+
+        /* 컨테이너 */
+        .container {
+            position: relative;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="shine shine-1"></div>
+    <div class="shine shine-2"></div>
+
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/chat/">
-                <i class="fas fa-rocket text-primary"></i> 스타트업 AI 지원
+            <a class="navbar-brand" href="/chat/">
+                🚀 BOSS BABY AI
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/chat/">채팅</a>
                 <a class="nav-link" href="/my-chats/">내 채팅</a>
-                <a class="nav-link active fw-bold" href="/mypage/">마이페이지</a>
+                <a class="nav-link active" href="/mypage/">마이페이지</a>
                 <a class="nav-link" href="#" onclick="logout()">로그아웃</a>
             </div>
         </div>
@@ -81,12 +296,12 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body text-center py-4">
-                        <div class="avatar-circle bg-primary text-white mb-3 mx-auto" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2em;">
+                        <div class="avatar-circle text-white mb-3 mx-auto" style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5em;">
                             <i class="fas fa-user"></i>
                         </div>
-                        <h3 class="card-title">{{ user.get_full_name|default:user.username }}님</h3>
-                        <p class="text-muted">{{ user.email }}</p>
-                        <p class="text-muted">가입일: {{ user.date_joined|date:"Y년 m월 d일" }}</p>
+                        <h3 class="card-title" style="font-size: 2rem;">{{ user.get_full_name|default:user.username }}님</h3>
+                        <p class="text-muted" style="font-weight: 600;">{{ user.email }}</p>
+                        <p class="text-muted" style="font-weight: 600;">가입일: {{ user.date_joined|date:"Y년 m월 d일" }}</p>
                     </div>
                 </div>
             </div>
@@ -94,18 +309,18 @@
 
         <!-- 통계 카드 섹션 -->
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col-md-6 mb-3">
                 <div class="card stat-card">
-                    <div class="card-body text-center">
+                    <div class="card-body text-center py-4">
                         <i class="fas fa-file-alt fa-3x mb-3"></i>
                         <h3>{{ total_plans }}</h3>
                         <p class="mb-0">총 사업계획서</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 mb-3">
                 <div class="card stat-card">
-                    <div class="card-body text-center">
+                    <div class="card-body text-center py-4">
                         <i class="fas fa-comments fa-3x mb-3"></i>
                         <h3>{{ recent_sessions|length }}</h3>
                         <p class="mb-0">최근 상담 세션</p>
@@ -118,9 +333,9 @@
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="fas fa-bolt text-primary"></i> 빠른 액션</h5>
-                        <div class="d-flex gap-2 flex-wrap">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-4"><i class="fas fa-bolt"></i> 빠른 액션</h5>
+                        <div class="d-flex gap-3 flex-wrap">
                             <a href="/business-plans/create/" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> 새 사업계획서 작성
                             </a>
@@ -138,10 +353,10 @@
 
         <!-- 최근 사업계획서 -->
         <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-transparent">
-                        <h5 class="mb-0"><i class="fas fa-file-alt text-primary"></i> 최근 사업계획서</h5>
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-alt"></i> 최근 사업계획서</h5>
                     </div>
                     <div class="card-body">
                         {% if recent_plans %}
@@ -150,16 +365,16 @@
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-1">
-                                                    <a href="/business-plans/{{ plan.id }}/" class="text-decoration-none">
+                                                <h6 class="mb-1" style="font-weight: 700; color: #00a8e8;">
+                                                    <a href="/business-plans/{{ plan.id }}/" class="text-decoration-none" style="color: #00a8e8;">
                                                         {{ plan.title }}
                                                     </a>
                                                 </h6>
-                                                <p class="mb-1 text-muted small">{{ plan.business_name }}</p>
+                                                <p class="mb-1 text-muted small" style="font-weight: 600;">{{ plan.business_name }}</p>
                                                 <div class="progress completion-bar mb-1">
                                                     <div class="progress-bar" style="width: {{ plan.completion_percentage }}%"></div>
                                                 </div>
-                                                <small class="text-muted">{{ plan.updated_at|date:"m월 d일" }}</small>
+                                                <small class="text-muted" style="font-weight: 600;">{{ plan.updated_at|date:"m월 d일" }}</small>
                                             </div>
                                             <span class="badge bg-secondary">{{ plan.get_business_type_display }}</span>
                                         </div>
@@ -171,8 +386,8 @@
                             </div>
                         {% else %}
                             <div class="text-center text-muted py-4">
-                                <i class="fas fa-file-plus fa-3x mb-3"></i>
-                                <p>아직 작성된 사업계획서가 없습니다.</p>
+                                <i class="fas fa-file-plus fa-3x mb-3" style="color: #00a8e8;"></i>
+                                <p style="font-weight: 600;">아직 작성된 사업계획서가 없습니다.</p>
                                 <a href="/business-plans/create/" class="btn btn-primary">
                                     첫 번째 사업계획서 작성하기
                                 </a>
@@ -183,10 +398,10 @@
             </div>
 
             <!-- 최근 창업 상담 -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-transparent">
-                        <h5 class="mb-0"><i class="fas fa-comments text-primary"></i> 최근 창업 상담</h5>
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-comments"></i> 최근 창업 상담</h5>
                     </div>
                     <div class="card-body">
                         {% if recent_sessions %}
@@ -195,8 +410,8 @@
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <h6 class="mb-1">{{ session.title }}</h6>
-                                                <small class="text-muted">
+                                                <h6 class="mb-1" style="font-weight: 700; color: #00a8e8;">{{ session.title }}</h6>
+                                                <small class="text-muted" style="font-weight: 600;">
                                                     {{ session.message_count }}개 메시지 • {{ session.updated_at|date:"m월 d일" }}
                                                 </small>
                                             </div>
@@ -214,8 +429,8 @@
                             </div>
                         {% else %}
                             <div class="text-center text-muted py-4">
-                                <i class="fas fa-comments fa-3x mb-3"></i>
-                                <p>아직 창업 상담 기록이 없습니다.</p>
+                                <i class="fas fa-comments fa-3x mb-3" style="color: #00a8e8;"></i>
+                                <p style="font-weight: 600;">아직 창업 상담 기록이 없습니다.</p>
                                 <a href="/chat/" class="btn btn-primary">
                                     창업 상담 시작하기
                                 </a>
@@ -225,6 +440,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Boss Baby 캐릭터 -->
+    <div class="character-fixed">
+        <img src="{% static 'bossbaby.png' %}" alt="Boss Baby">
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
