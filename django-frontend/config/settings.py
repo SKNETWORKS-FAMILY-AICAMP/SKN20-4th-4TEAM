@@ -71,12 +71,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ======================
 # DATABASE
 # ======================
+# ======================
+# DATABASE (MySQL)
+# ======================
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'startup_chatbot',
+        'USER': 'root',
+        'PASSWORD': 'newpassword123',  # ⚠️ 조원 비밀번호에 맞게
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
 }
+
 
 
 # ======================
