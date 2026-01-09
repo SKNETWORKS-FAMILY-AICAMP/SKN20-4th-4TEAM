@@ -264,44 +264,52 @@ recommend_prompt = ChatPromptTemplate.from_messages([
     ("human", "[지원사업 문맥]\n{context}\n\n[사용자 조건]\n{question}\n\n위 형식에 맞춰 추천해 주세요.")
 ])
 
-# 일정 추출 프롬프트
 EXTRACT_SCHEDULE_PROMPT = """
-당신은 창업 지원 관련 대화에서 중요한 일정을 추출하는 전문 비서입니다.
+당신은 창업 지원 관련 대화에서
+**캘린더에 저장 가능한 확정 일정만 추출하는 전문 비서**입니다.
 
 [대화 컨텍스트]
 - 원래 질문: {question}
 - AI 답변: {answer}
 
-[추출 규칙]
+[추출 규칙] ⚠️ 매우 중요
 1. 답변에서 다음 정보를 찾아 JSON 배열로 반환하세요:
    - 지원사업명, 공고명, 프로그램명
    - 마감일, 접수 기간, 신청 기한
-   
+
 2. 날짜 표현 처리:
    - "3월 15일" → "2026-03-15"
-   - "3월 중순" → "2026-03-15" (15일로 근사)
+   - "3월 중순" → "2026-03-15"
    - "3월 말" → "2026-03-31"
    - "2주 후" → 현재 날짜(2026-01-08) 기준 계산
    - 연도가 없으면 2026년으로 가정
-   
-3. 날짜를 찾을 수 없으면:
-   - 해당 항목을 배열에서 제외 (빈 배열 가능)
-   
+
+3. ❗ 날짜를 **정확히 특정할 수 없는 경우**
+   (예: 날짜 미정, 전국 순회, 추후 공지, 빈 문자열 등)
+   → ❌ 해당 항목은 **절대 JSON에 포함하지 마세요**
+   → ❌ date 필드를 비워두거나 추측하지 마세요
+
 4. 여러 사업이 언급되면 각각 별도 항목으로 추출
 
-5. JSON 형식만 출력하고 다른 설명은 하지 마세요.
+5. 출력은 반드시 JSON 배열만 허용합니다
+   - 일정이 없으면 반드시 [] 만 출력하세요
+   - 다른 설명, 주석, 문장은 절대 출력하지 마세요
 
 [출력 형식]
 [
-  {{
+  {
     "title": "사업명 또는 일정 제목",
     "date": "YYYY-MM-DD",
-    "description": "간단한 설명 (선택)"
-  }}
+    "description": "간단한 설명"
+  }
 ]
 
-빈 배열도 가능: []
+⚠️ 금지 사항:
+- "date": "" 사용 금지
+- 날짜 추측 금지
+- 불확실한 일정 출력 금지
 """
+
 
 # Fallback 프롬프트
 fallback_prompt = ChatPromptTemplate.from_template("""
@@ -521,12 +529,18 @@ def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
             for item in events_data:
                 try:
                     # 날짜 형식 유연하게 처리
-                    if 'date' in item:
-                        item['date'] = parse_date_flexibly(item['date'])
-                    
+                    # 날짜 필드가 없거나 비어 있으면 스킵
+                    raw_date = item.get("date", "").strip()
+                    if not raw_date:
+                        print("   ⚠️ 날짜 없음 → 일정 스킵")
+                        continue
+
+                    parsed_date = parse_date_flexibly(raw_date)
+                    item["date"] = parsed_date  
                     event = CalendarEvent(**item)
                     calendar_events.append(event)
                     print(f"   ✅ 일정 추출 성공: {event.title} ({event.date})")
+
                 except Exception as e:
                     print(f"   ⚠️ 개별 일정 파싱 실패: {e}")
                     print(f"      데이터: {item}")

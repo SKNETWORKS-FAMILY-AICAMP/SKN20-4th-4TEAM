@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'startup_chatbot',
         'USER': 'root',
-        'PASSWORD': 'root1234',  # ⚠️ 조원 비밀번호에 맞게
+        'PASSWORD': 'newpassword123',  # ⚠️ 조원 비밀번호에 맞게
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
