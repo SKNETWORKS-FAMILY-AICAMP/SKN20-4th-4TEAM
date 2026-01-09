@@ -1,0 +1,39 @@
+# Project-wide dependencies for SKN20-4th-4TEAM
+
+# Environment / utilities
+python-dotenv
+requests
+beautifulsoup4
+lxml
+
+# Web frameworks / servers
+Django>=4.2
+fastapi
+uvicorn
+pydantic
+
+# Database / auth
+mysqlclient
+PyMySQL
+SQLAlchemy
+passlib[bcrypt]
+bcrypt
+
+# LangChain / LLM integrations
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-chroma
+langchain-text-splitters
+chromadb
+openai
+tavily-python
+
+# Text / PDF / tokenizers
+pypdf
+pymupdf
+tiktoken
+
+# Optional / helpful
+python-multipart
