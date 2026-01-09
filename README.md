@@ -1,4 +1,6 @@
-![header](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=300&section=header&text=SKN20%204th-Project%20Team%204&fontSize=60)
+![header](./assets/header.png)
+
+# 🚀 Boss Baby AI - 창업 지원 통합 플랫폼
 
 # 🚀 Boss Baby AI - 창업 지원 통합 플랫폼
 
