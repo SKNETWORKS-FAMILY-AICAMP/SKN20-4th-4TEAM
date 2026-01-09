@@ -729,6 +729,7 @@
                     <button class="action-btn" onclick="location.href='/my-chats/'" title="채팅 내역">📜</button>
                     <button class="action-btn" onclick="newChat()" title="새 대화">🔄</button>
                     <button class="action-btn" onclick="showSettings()" title="설정">⚙️</button>
+                    <button class="action-btn" onclick="location.href='/my-calendar/'"title="내 일정">📅</button>
                 </div>
             </div>
 
@@ -884,22 +885,110 @@
             addMessage(data.answer, 'bot', data.source_type);
             
             // 👇 히스토리에 AI 응답 추가 (핵심!)
-            chatHistory.push({
-                role: 'assistant',
-                content: data.answer
-            });
+            chatHistory.push({ role: 'assistant',content: data.answer});
             
-            console.log('현재 히스토리:', chatHistory);  // 👈 디버깅용
-            
-        } catch (error) {
-            removeTypingIndicator();
-            console.error('API 오류:', error);
-            addErrorMessage(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
-        } finally {
-            isProcessing = false;
-            sendBtn.disabled = false;
+            // 일정 저장 제안이 있으면 버튼 표시 (오늘 이후만)
+                if (data.calendar_suggestion && data.calendar_suggestion.length > 0) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let displayCount = 0;  // ← 카운터 추가
+                    for (const suggestion of data.calendar_suggestion) {  // ← forEach → for...of
+                        if (displayCount >= 3) break;  // ← 3개 제한
+                        
+                        try {
+                            const eventDate = new Date(suggestion.date || suggestion.deadline || suggestion.event_date);
+                            if (eventDate >= today) {
+                                showCalendarSuggestion(suggestion);
+                                displayCount++;  // ← 카운터 증가
+                            }
+                        } catch (e) {
+                            showCalendarSuggestion(suggestion);
+                            displayCount++;  // ← 카운터 증가
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('API 오류:', error);
+                addErrorMessage(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
         }
+
+        // 일정 저장 제안 표시
+        function showCalendarSuggestion(suggestion) {
+    const messagesDiv = document.getElementById('messages');
+    const suggestionDiv = document.createElement('div');
+    suggestionDiv.className = 'message bot';
+    
+    // <span style="background-color: #fff5b1">버튼 클릭 시 현재 suggestion 데이터를 통째로 전달하도록 설정</span>
+    const suggestionJson = JSON.stringify(suggestion).replace(/'/g, "&apos;");
+
+    suggestionDiv.innerHTML = `
+        <div class="avatar bot">📅</div>
+        <div class="message-content">
+            <div style="background: rgba(102, 126, 234, 0.1); padding: 16px; border-radius: 12px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                <div style="font-weight: 600; margin-bottom: 12px; color: #667eea;">💡 일정 저장 제안</div>
+                <div style="margin-bottom: 8px;"><strong>행사명:</strong> ${suggestion.title || suggestion.biz_name}</div>
+                <div style="margin-bottom: 16px;"><strong>날짜:</strong> ${suggestion.date || suggestion.deadline}</div>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick='saveToCalendar(${suggestionJson})' style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        📅 캘린더에 저장
+                    </button>
+                    <button onclick="dismissSuggestion(this)" style="padding: 10px 20px; background: transparent; color: #666; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
+                        나중에
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    messagesDiv.appendChild(suggestionDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+        // 캘린더에 저장
+        async function saveToCalendar(suggestion) {
+    try {
+        const response = await fetch('/api/calendar/events/add/', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: suggestion.title || suggestion.biz_name,
+                event_date: suggestion.event_date || suggestion.date || suggestion.deadline,
+                biz_name: suggestion.biz_name || '',
+                biz_id: suggestion.biz_id || '',
+                description: suggestion.description || 'AI 추출 일정',
+                event_type: suggestion.event_type || 'deadline',
+                url: suggestion.url || ''
+            })
+        });
+        
+        const data = await response.json();
+        
+        // 서버 응답이 성공인지 확인
+        if (response.ok) {
+            addMessage(`✅ '${suggestion.title || suggestion.biz_name}' 일정이 저장되었습니다!`, 'bot');
+        } else {
+            throw new Error(data.error || data.detail || '저장 실패');
+        }
+    } catch (error) {
+        console.error('캘린더 저장 오류:', error);
+        addErrorMessage('일정 저장 중 오류가 발생했습니다: ' + error.message);
     }
+}
+
+
+        // 제안 무시
+        function dismissSuggestion(button) {
+            const messageDiv = button.closest('.message');
+            messageDiv.style.opacity = '0.5';
+            button.textContent = '닫힘';
+            button.disabled = true;
+        }
         // ========================================
         // 메시지 추가
         // ========================================

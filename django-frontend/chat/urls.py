@@ -34,4 +34,12 @@ urlpatterns = [
     path('business-plans/<int:plan_id>/delete/', views.business_plan_delete, name='business_plan_delete'),
 
     path('business-plans/<int:plan_id>/analyze/', views.business_plan_analyze, name='business_plan_analyze'),
+    
+    # 캘린더 API
+    path('my-calendar/', views.my_calendar_page, name='my_calendar'),
+    path('api/calendar/events/', views.get_calendar_events, name='get_calendar_events'),
+    path('api/calendar/events/add/', views.add_calendar_event, name='add_calendar_event'),
+    path('api/calendar/events/<int:event_id>/delete/', views.delete_calendar_event, name='delete_calendar_event'),
+    path('api/calendar/events/<int:event_id>/toggle/', views.toggle_event_complete, name='toggle_event_complete'),
+    path('api/calendar/events/upcoming/', views.get_upcoming_events, name='get_upcoming_events'),
 ]

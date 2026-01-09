@@ -9,6 +9,9 @@ from django.contrib.auth.models import User
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from .models import ChatSession, ChatMessage, BusinessPlan
+from django.utils import timezone
+from datetime import datetime
+from .models import CalendarEvent
 import requests
 import json
 import time
@@ -305,6 +308,27 @@ def chat_api(request):
                 except Exception as db_error:
                     print(f"[Django] DB 저장 오류: {db_error}")
                     # DB 저장 실패해도 응답은 반환
+
+                # 캘린더 추천 일정 필터링 (오늘 이후만)
+                if 'calendar_suggestion' in result and result['calendar_suggestion']:
+                    from datetime import date as date_class
+                    today = date_class.today()
+                    filtered_suggestions = []
+                    
+                    for suggestion in result['calendar_suggestion']:
+                        try:
+                            # 날짜 파싱 시도 (여러 형식 지원)
+                            event_date_str = suggestion.get('date') or suggestion.get('deadline') or suggestion.get('event_date')
+                            if event_date_str:
+                                event_date = datetime.strptime(event_date_str, '%Y-%m-%d').date()
+                                if event_date >= today:
+                                    filtered_suggestions.append(suggestion)
+                        except:
+                            # 날짜 파싱 실패 시 포함
+                            filtered_suggestions.append(suggestion)
+                    
+                    result['calendar_suggestion'] = filtered_suggestions
+                    print(f"[Django] 일정 필터링: {len(result['calendar_suggestion'])}개")
                 
                 return JsonResponse(result)
             else:
@@ -877,3 +901,201 @@ def parse_analysis(analysis_text):
         print(f"[Django] 파싱 오류: {e}")
     
     return parsed
+
+
+
+#_________________________________ 캘린더
+@login_required
+def my_calendar_page(request):
+    """캘린더 페이지"""
+    return render(request, 'my_calendar.html')
+
+@login_required
+@require_http_methods(["GET"])
+def get_calendar_events(request):
+    """캘린더 일정 목록 조회"""
+    from datetime import date
+    
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    
+    # 오늘 이후의 일정만 조회
+    events = CalendarEvent.objects.filter(
+        user=request.user,
+        event_date__gte=date.today()
+    )
+    
+    # 연월 필터링
+    if year and month:
+        events = events.filter(
+            event_date__year=int(year),
+            event_date__month=int(month)
+        )
+    
+    events_list = [{
+        'id': event.id,
+        'biz_id': event.biz_id,
+        'biz_name': event.biz_name,
+        'title': event.title,
+        'description': event.description,
+        'event_type': event.event_type,
+        'event_date': event.event_date.strftime('%Y-%m-%d'),
+        'url': event.url,
+        'is_completed': event.is_completed,
+        'days_remaining': event.days_remaining,
+        'is_past': event.is_past,
+        'reminder_days': event.reminder_days,
+        'created_at': event.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    } for event in events]
+    
+    return JsonResponse({
+        'success': True,
+        'events': events_list,
+        'total': len(events_list)
+    })
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+def add_calendar_event(request):
+    """캘린더 일정 추가"""
+    try:
+        data = json.loads(request.body)
+        
+        # 필수 필드 검증
+        required_fields = ['title', 'event_date']
+        for field in required_fields:
+            if not data.get(field):
+                return JsonResponse({
+                    'success': False,
+                    'error': f'{field}는 필수 항목입니다.'
+                }, status=400)
+        
+        # 날짜 파싱
+        try:
+            event_date = datetime.strptime(data['event_date'], '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'error': '날짜 형식이 올바르지 않습니다. (YYYY-MM-DD)'
+            }, status=400)
+        
+        # 일정 생성
+        event = CalendarEvent.objects.create(
+            user=request.user,
+            biz_id=data.get('biz_id'),
+            biz_name=data.get('biz_name', data['title']),
+            title=data['title'],
+            description=data.get('description', ''),
+            event_type=data.get('event_type', 'deadline'),
+            event_date=event_date,
+            url=data.get('url', ''),
+            reminder_days=data.get('reminder_days', 3)
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': '일정이 추가되었습니다.',
+            'event': {
+                'id': event.id,
+                'title': event.title,
+                'event_date': event.event_date.strftime('%Y-%m-%d'),
+                'days_remaining': event.days_remaining
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'JSON 형식이 올바르지 않습니다.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["DELETE"])
+def delete_calendar_event(request, event_id):
+    """캘린더 일정 삭제"""
+    try:
+        event = CalendarEvent.objects.get(id=event_id, user=request.user)
+        event.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': '일정이 삭제되었습니다.'
+        })
+    except CalendarEvent.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': '일정을 찾을 수 없습니다.'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["PATCH"])
+def toggle_event_complete(request, event_id):
+    """일정 완료 상태 토글"""
+    try:
+        event = CalendarEvent.objects.get(id=event_id, user=request.user)
+        event.is_completed = not event.is_completed
+        event.save()
+        
+        return JsonResponse({
+            'success': True,
+            'is_completed': event.is_completed,
+            'message': '완료' if event.is_completed else '미완료'
+        })
+    except CalendarEvent.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': '일정을 찾을 수 없습니다.'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_upcoming_events(request):
+    """다가오는 일정 조회 (D-Day 알림용)"""
+    days = int(request.GET.get('days', 7))  # 기본 7일
+    
+    today = datetime.now().date()
+    end_date = today + timedelta(days=days)
+    
+    events = CalendarEvent.objects.filter(
+        user=request.user,
+        event_date__gte=today,
+        event_date__lte=end_date,
+        is_completed=False
+    ).order_by('event_date')
+    
+    events_list = [{
+        'id': event.id,
+        'title': event.title,
+        'event_date': event.event_date.strftime('%Y-%m-%d'),
+        'days_remaining': event.days_remaining,
+        'event_type': event.event_type,
+        'url': event.url
+    } for event in events]
+    
+    return JsonResponse({
+        'success': True,
+        'events': events_list,
+        'count': len(events_list)
+    })

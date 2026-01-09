@@ -130,3 +130,62 @@ class BusinessPlan(models.Model):
             self.target_customer and 
             self.differentiation
         )
+
+
+    
+class CalendarEvent(models.Model):
+    """사용자 캘린더 일정 모델"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calendar_events')
+    
+    # 공고 정보
+    biz_id = models.CharField(max_length=100, verbose_name='사업 ID', null=True, blank=True)
+    biz_name = models.CharField(max_length=500, verbose_name='사업명')
+    
+    # 일정 정보
+    event_type = models.CharField(
+        max_length=50, 
+        choices=[
+            ('deadline', '마감일'),
+            ('start', '시작일'),
+            ('presentation', '발표일'),
+            ('custom', '직접입력')
+        ],
+        default='deadline',
+        verbose_name='일정 유형'
+    )
+    event_date = models.DateField(verbose_name='일정 날짜')
+    
+    # 추가 정보
+    title = models.CharField(max_length=500, verbose_name='일정 제목')
+    description = models.TextField(blank=True, null=True, verbose_name='상세 설명')
+    url = models.URLField(blank=True, null=True, verbose_name='공고 URL')
+    
+    # 알림 설정
+    reminder_days = models.IntegerField(default=3, verbose_name='알림 (일 전)')
+    is_completed = models.BooleanField(default=False, verbose_name='완료 여부')
+    
+    # 메타 정보
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='생성일')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='수정일')
+    
+    class Meta:
+        db_table = 'calendar_events'
+        ordering = ['event_date', '-created_at']
+        verbose_name = '캘린더 일정'
+        verbose_name_plural = '캘린더 일정들'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title} ({self.event_date})"
+    
+    @property
+    def is_past(self):
+        """지난 일정인지 확인"""
+        from datetime import date
+        return self.event_date < date.today()
+    
+    @property
+    def days_remaining(self):
+        """남은 일수 계산"""
+        from datetime import date
+        delta = self.event_date - date.today()
+        return delta.days

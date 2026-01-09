@@ -1,21 +1,26 @@
 import os
 import warnings
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator, RootModel
 import uvicorn
+import json
+from datetime import datetime
+import re
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_community.retrievers import TavilySearchAPIRetriever
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, AIMessage 
-from typing import List
+from typing import List,Optional, Dict
 from backend.database import save_chat, create_chat_session
 from sqlalchemy import text
 from backend.database import (
@@ -26,7 +31,7 @@ from backend.database import (
 )
 
 
-
+templates = Jinja2Templates(directory="templates")
 warnings.filterwarnings("ignore")
 load_dotenv()
 
@@ -54,6 +59,26 @@ app.add_middleware(
 )
 
 # 요청/응답 모델
+
+class CalendarEvent(BaseModel):
+    title: str = Field(description="일정 제목 (예: 지원사업 마감)")
+    date: str = Field(description="YYYY-MM-DD 형식의 날짜")
+    description: Optional[str] = Field(None, description="일정에 대한 간단한 설명")
+    
+    @field_validator('date')
+    @classmethod
+    def validate_date_format(cls, v):
+        """날짜 형식 검증"""
+        try:
+            datetime.strptime(v, '%Y-%m-%d')
+            return v
+        except ValueError:
+            # 형식이 맞지 않으면 현재 연도로 시도
+            raise ValueError(f'날짜는 YYYY-MM-DD 형식이어야 합니다: {v}')
+
+class CalendarEventList(RootModel[List[CalendarEvent]]):
+    pass
+
 class ChatRequest(BaseModel):
     question: str
     chat_history: List[dict] = []
@@ -67,6 +92,12 @@ class LoginRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     source_type: str  # "internal-rag", "web-search", "fallback"
+    calendar_suggestion: Optional[List[CalendarEvent]] = None
+
+class SaveEventRequest(BaseModel):
+    title: str
+    date: str
+    description: Optional[str] = None
 
 # ========================================
 # 벡터DB 및 LLM 초기화
@@ -233,6 +264,45 @@ recommend_prompt = ChatPromptTemplate.from_messages([
     ("human", "[지원사업 문맥]\n{context}\n\n[사용자 조건]\n{question}\n\n위 형식에 맞춰 추천해 주세요.")
 ])
 
+# 일정 추출 프롬프트
+EXTRACT_SCHEDULE_PROMPT = """
+당신은 창업 지원 관련 대화에서 중요한 일정을 추출하는 전문 비서입니다.
+
+[대화 컨텍스트]
+- 원래 질문: {question}
+- AI 답변: {answer}
+
+[추출 규칙]
+1. 답변에서 다음 정보를 찾아 JSON 배열로 반환하세요:
+   - 지원사업명, 공고명, 프로그램명
+   - 마감일, 접수 기간, 신청 기한
+   
+2. 날짜 표현 처리:
+   - "3월 15일" → "2026-03-15"
+   - "3월 중순" → "2026-03-15" (15일로 근사)
+   - "3월 말" → "2026-03-31"
+   - "2주 후" → 현재 날짜(2026-01-08) 기준 계산
+   - 연도가 없으면 2026년으로 가정
+   
+3. 날짜를 찾을 수 없으면:
+   - 해당 항목을 배열에서 제외 (빈 배열 가능)
+   
+4. 여러 사업이 언급되면 각각 별도 항목으로 추출
+
+5. JSON 형식만 출력하고 다른 설명은 하지 마세요.
+
+[출력 형식]
+[
+  {{
+    "title": "사업명 또는 일정 제목",
+    "date": "YYYY-MM-DD",
+    "description": "간단한 설명 (선택)"
+  }}
+]
+
+빈 배열도 가능: []
+"""
+
 # Fallback 프롬프트
 fallback_prompt = ChatPromptTemplate.from_template("""
 질문: {question}
@@ -248,6 +318,11 @@ multi_query_chain = multi_query_prompt | llm | StrOutputParser()
 relevance_chain = relevance_check_prompt | llm | StrOutputParser()
 fallback_chain = fallback_prompt | llm | StrOutputParser()
 contextualize_q_chain = contextualize_q_prompt | llm | StrOutputParser()
+
+# 일정 추출 체인 - 더 유연한 파싱
+extract_prompt_template = ChatPromptTemplate.from_template(EXTRACT_SCHEDULE_PROMPT)
+extract_chain = extract_prompt_template | ChatOpenAI(model="gpt-4o-mini", temperature=0) | StrOutputParser()
+
 
 # ========================================
 # 헬퍼 함수
@@ -377,6 +452,132 @@ def rag_answer_from_docs(question: str, documents):
 
 
 # ========================================
+# 일정 추출 함수
+# ========================================
+
+def parse_date_flexibly(date_str: str) -> str:
+    """다양한 날짜 표현을 YYYY-MM-DD 형식으로 변환"""
+    current_year = 2026
+    
+    # 이미 YYYY-MM-DD 형식인 경우
+    if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
+        return date_str
+    
+    # "3월 15일" 형식
+    match = re.search(r'(\d{1,2})월\s*(\d{1,2})일', date_str)
+    if match:
+        month, day = match.groups()
+        return f"{current_year}-{int(month):02d}-{int(day):02d}"
+    
+    # "3월 중순" 형식
+    match = re.search(r'(\d{1,2})월\s*중순', date_str)
+    if match:
+        month = match.group(1)
+        return f"{current_year}-{int(month):02d}-15"
+    
+    # "3월 말" 형식
+    match = re.search(r'(\d{1,2})월\s*말', date_str)
+    if match:
+        month = int(match.group(1))
+        # 월별 마지막 날
+        last_days = {1:31, 2:28, 3:31, 4:30, 5:31, 6:30, 
+                    7:31, 8:31, 9:30, 10:31, 11:30, 12:31}
+        return f"{current_year}-{month:02d}-{last_days.get(month, 30):02d}"
+    
+    return date_str
+
+def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
+    """
+    [수정된 함수]
+    - question과 answer 모두 받아서 더 정확한 추출
+    - JSON 파싱 실패 시 상세 로깅
+    - 유연한 날짜 파싱
+    """
+    try:
+        print(f"📅 일정 추출 시작...")
+        print(f"   질문: {question[:100]}...")
+        print(f"   답변 길이: {len(answer)} 문자")
+        
+        # LLM에게 일정 추출 요청 (StrOutputParser 사용)
+        raw_result = extract_chain.invoke({
+            "question": question,
+            "answer": answer
+        })
+        
+        print(f"   LLM 응답: {raw_result[:200]}...")
+        
+        # JSON 파싱 시도
+        try:
+            # 마크다운 코드 블록 제거
+            cleaned = re.sub(r'```json\s*|\s*```', '', raw_result.strip())
+            events_data = json.loads(cleaned)
+            
+            if not isinstance(events_data, list):
+                print(f"⚠️ 응답이 리스트가 아님: {type(events_data)}")
+                return []
+            
+            # CalendarEvent 객체로 변환 (날짜 유연 파싱)
+            calendar_events = []
+            for item in events_data:
+                try:
+                    # 날짜 형식 유연하게 처리
+                    if 'date' in item:
+                        item['date'] = parse_date_flexibly(item['date'])
+                    
+                    event = CalendarEvent(**item)
+                    calendar_events.append(event)
+                    print(f"   ✅ 일정 추출 성공: {event.title} ({event.date})")
+                except Exception as e:
+                    print(f"   ⚠️ 개별 일정 파싱 실패: {e}")
+                    print(f"      데이터: {item}")
+                    continue
+            
+            return calendar_events
+            
+        except json.JSONDecodeError as je:
+            print(f"⚠️ JSON 파싱 실패: {je}")
+            print(f"   원본 응답: {raw_result}")
+            return []
+            
+    except Exception as e:
+        print(f"⚠️ 일정 추출 중 오류 발생: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+def detect_schedule_intent(question: str, answer: str) -> bool:
+    """
+    [새로운 함수]
+    질문이나 답변에서 일정 관련 의도를 감지
+    """
+    # 확장된 일정 관련 키워드
+    schedule_keywords = [
+        "기록", "저장", "캘린더", "일정",
+        "마감", "접수", "신청기간", "기한",
+        "언제까지", "마감일", "접수기간",
+        "신청 기간", "모집 기간"
+    ]
+    
+    # 질문에서 체크
+    question_lower = question.lower()
+    if any(k in question_lower for k in schedule_keywords):
+        return True
+    
+    # 답변에 날짜 패턴이 있는지 체크
+    date_patterns = [
+        r'\d{4}[-./]\d{1,2}[-./]\d{1,2}',  # 2026-03-15
+        r'\d{1,2}월\s*\d{1,2}일',          # 3월 15일
+        r'\d{1,2}월\s*(초|중순|말)',        # 3월 말
+        r'(접수|마감|신청)\s*(기간|기한)',  # 접수 기간
+    ]
+    
+    for pattern in date_patterns:
+        if re.search(pattern, answer):
+            return True
+    
+    return False
+
+# ========================================
 # 메인 RAG 함수
 # ========================================
 def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, similarity_threshold=0.3):
@@ -387,6 +588,7 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
       3) 멀티쿼리 생성 (MQ)
       4) 벡터검색
       5) 최종 분기: 내부 RAG vs. 웹검색/Fallback
+    6) [수정] 일정 추출 로직 개선
       
     Returns:
         tuple: (answer, source_type)
@@ -411,9 +613,9 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
     print(f'[히스토리] 독립 질문: {standalone_question}')
 
     # 2. 내부 RAG 검색용 Query Transform (QT) 
+    # 2. Query Transform
     try:
         qt_result = qt_chain.invoke({"question": standalone_question})
-
         if isinstance(qt_result, str):
             rag_qt_query = qt_result
         elif hasattr(qt_result, "content"):
@@ -422,12 +624,11 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
             rag_qt_query = qt_result.get("text") or qt_result.get("output")
         else:
             rag_qt_query = standalone_question
-
     except Exception as e:
         print(f"[QT ERROR] {e}")
         rag_qt_query = standalone_question
 
-    print(f"[QT] 변환 (내부 RAG): {rag_qt_query}")
+    print(f"[QT] 변환: {rag_qt_query}")
     
     # 3. 멀티 쿼리 (MQ) - 내부 RAG 검색에 사용
     try:
@@ -451,40 +652,53 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
         print("[2차 필터링] LLM 관련성 검증 중...")
         is_relevant = check_relevance(standalone_question, filtered_docs)
 
-    # 6. 최종 분기: 내부 RAG vs. 웹 검색/Fallback
+    # 6. 최종 분기 로직
     if is_relevant:
-        print("✅ 내부 문서가 질문과 관련있음 → 내부 RAG 실행")
+        print("✅ 내부 RAG 실행 중...")
         useful = filtered_docs[:top_k]
-        # 최종 답변 생성에는 히스토리 반영된 독립 질문 사용
         answer = rag_answer_from_docs(standalone_question, useful)
-        return answer, "internal-rag"
+        source_type = "internal-rag"
     else:
         print("⚠️ 내부 문서 (없거나/무관) → 웹검색으로 전환")
         
-        # 6-1. 웹 검색 쿼리 최적화: standalone_question을 qt_chain에 재활용하여 검색 정확도 개선
         try:
             web_search_query = qt_chain.invoke({"question": standalone_question})
         except Exception as e:
             print(f"⚠️ 웹 쿼리 변환 오류: {e}")
             web_search_query = standalone_question
-        print(f"[웹QT/재활용] 변환: {web_search_query}")
+        print(f"[웹QT] 변환: {web_search_query}")
 
         try:
-            # 최적화된 쿼리를 웹 검색에 사용
             web_docs = web_search(web_search_query)
         except Exception as e:
             print(f"⚠️ 웹검색 실패: {e}")
             answer = fallback_chain.invoke({"question": standalone_question})
-            return answer, "fallback"
+            return answer, "fallback", []
 
         if not web_docs:
             print("⚠️ 웹검색 결과 없음 → LLM 자체지식으로 응답")
             answer = fallback_chain.invoke({"question": standalone_question})
-            return answer, "fallback"
+            return answer, "fallback", []
         
         answer = rag_answer_from_docs(standalone_question, web_docs)
-        return answer, "web-search"
+        source_type = "web-search"
 
+    # 7. [수정된] 일정 추출 로직
+    calendar_events = []
+    
+    # 일정 추출 의도 감지
+    if detect_schedule_intent(question, answer):
+        print("📅 일정 관련 내용 감지 → 일정 추출 시도")
+        calendar_events = extract_calendar_events(standalone_question, answer)
+        
+        if calendar_events:
+            print(f"✅ {len(calendar_events)}개 일정 추출 완료")
+        else:
+            print("⚠️ 일정을 추출하지 못했습니다")
+    else:
+        print("ℹ️ 일정 추출 불필요")
+
+    return answer, source_type, calendar_events
 
 # ========================================
 # API 엔드포인트
@@ -517,17 +731,20 @@ async def chat(request: ChatRequest):
             session_id = create_chat_session()
             print(f"[세션 생성] session_id={session_id}")
 
-        source_type = "unknown"
-
-        # ✅ 2. 이제 session_id 사용 가능
+        # ✅ 2. 사용자 메시지 저장
         save_chat(
             session_id=session_id,
             role="user",
             content=question
         )
 
-        answer, source_type = multi_query_rag_with_qt(question, chat_history)
+        # ✅ 3. RAG 실행 (3개 값 받기)
+        answer, source_type, calendar_suggestion = multi_query_rag_with_qt(
+            question, 
+            chat_history
+        )
 
+        # ✅ 4. AI 응답 저장
         save_chat(
             session_id=session_id,
             role="assistant",
@@ -535,14 +752,18 @@ async def chat(request: ChatRequest):
             source_type=source_type
         )
 
-        return {
-            "answer": answer,
-            "source_type": source_type,
-            "session_id": session_id
-        }
+        # ✅ 5. 응답 반환
+        return ChatResponse(
+            answer=answer,
+            source_type=source_type,
+            calendar_suggestion=calendar_suggestion,
+            session_id=session_id
+        )
 
     except Exception as e:
         print(f"[API 오류] {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/chat/history/{session_id}")
@@ -644,7 +865,23 @@ async def analyze(request: ChatRequest):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"분석 중 오류 발생: {str(e)}")
+@app.get("/my_calendar", response_class=HTMLResponse)
+async def get_calendar_page(request: Request):
+    # my_calendar.html 파일을 브라우저에 띄워줍니다.
+    return templates.TemplateResponse("my_calendar.html", {"request": request})
 
+@app.post("/my_calendar")
+async def save_calendar_event(event: SaveEventRequest):
+    try:
+        print(f"📌 일정 기록 요청 수신: {event.title} - {event.date}")
+        
+        # TODO: 여기에 database.py의 저장 함수를 연결하면 실제 DB에 쌓입니다.
+        # 예: save_calendar_event_to_db(event.title, event.date, event.description)
+        
+        return {"status": "success", "message": "일정이 캘린더에 기록되었습니다!"}
+    except Exception as e:
+        print(f"❌ 저장 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 # ========================================
 # 서버 실행
 # ========================================
