@@ -202,6 +202,121 @@
             0%,100% { opacity: 0.3; }
             50% { opacity: 0.6; }
         }
+
+        /* 회원가입 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
+            border-radius: 30px;
+            padding: 40px 50px;
+            width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            border: 4px solid #00a8e8;
+        }
+
+        .modal-title {
+            font-size: 36px;
+            font-weight: 900;
+            color: #00a8e8;
+            text-align: center;
+            margin-bottom: 30px;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            text-shadow: 2px 2px 0px #0077b3;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #00a8e8;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 16px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(180deg, #e8e8e8 0%, #f5f5f5 50%, #ffffff 100%);
+            box-shadow: 
+                inset 0 3px 6px rgba(0, 0, 0, 0.15),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            border: 2px solid #d0d0d0;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #00a8e8;
+            background: #ffffff;
+        }
+
+        .modal-input::placeholder {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .register-submit-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffffff;
+            background: linear-gradient(180deg, #7dd3f0 0%, #00a8e8 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.4),
+                0 6px 0 #0077b3,
+                0 10px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.1s;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            border: 3px solid #0088cc;
+        }
+
+        .register-submit-btn:hover {
+            background: linear-gradient(180deg, #8ee0ff 0%, #00b8f8 100%);
+            transform: translateY(-2px);
+        }
+
+        .register-submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 
+                inset 0 3px 0 rgba(255, 255, 255, 0.4),
+                0 2px 0 #0077b3,
+                0 4px 10px rgba(0, 0, 0, 0.3);
+        }
     </style>
 </head>
 
@@ -238,6 +353,20 @@
         </div>
     </div>
 
+    <!-- 회원가입 모달 -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title">회원가입</h2>
+            <form onsubmit="event.preventDefault(); submitRegister();">
+                <input type="text" class="modal-input" id="regUsername" placeholder="아이디" required>
+                <input type="password" class="modal-input" id="regPassword" placeholder="비밀번호" required>
+                <input type="password" class="modal-input" id="regPasswordConfirm" placeholder="비밀번호 확인" required>
+                <button type="submit" class="register-submit-btn">가입하기</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         async function login() {
             const username = loginUsername.value;
@@ -257,12 +386,29 @@
             location.href = "/chat/";
         }
 
-        async function register() {
-            const username = loginUsername.value;
-            const password = loginPassword.value;
+        function openModal() {
+            document.getElementById('registerModal').classList.add('active');
+        }
 
-            if (!username || !password) {
-                alert("아이디/비밀번호 입력");
+        function closeModal() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regPasswordConfirm').value = '';
+        }
+
+        async function submitRegister() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+
+            if (!username || !password || !passwordConfirm) {
+                alert("모든 필드를 입력해주세요.");
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                alert("비밀번호가 일치하지 않습니다.");
                 return;
             }
 
@@ -278,6 +424,12 @@
             }
 
             alert("회원가입 성공!");
+            closeModal();
+        }
+
+        // 기존 register 함수 (회원가입 버튼 클릭 시 모달 열기)
+        function register() {
+            openModal();
         }
     </script>
 </body>
