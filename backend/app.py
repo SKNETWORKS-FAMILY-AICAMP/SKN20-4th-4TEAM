@@ -21,9 +21,9 @@ from langchain_community.retrievers import TavilySearchAPIRetriever
 from langchain_core.documents import Document
 from langchain_core.messages import HumanMessage, AIMessage 
 from typing import List,Optional, Dict
-from backend.database import save_chat, create_chat_session
+from database import save_chat, create_chat_session
 from sqlalchemy import text
-from backend.database import (
+from database import (
     get_user_by_email,
     create_user,
     verify_password,
