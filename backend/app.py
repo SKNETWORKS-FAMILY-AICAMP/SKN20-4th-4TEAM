@@ -89,10 +89,12 @@ class LoginRequest(BaseModel):
     password: str
     session_id: int | None = None
 
+# ✅ 수정 1: ChatResponse에 session_id 필드 추가
 class ChatResponse(BaseModel):
     answer: str
     source_type: str  # "internal-rag", "web-search", "fallback"
     calendar_suggestion: Optional[List[CalendarEvent]] = None
+    session_id: Optional[int] = None  # ← 추가
 
 class SaveEventRequest(BaseModel):
     title: str
@@ -193,6 +195,15 @@ multi_query_prompt = ChatPromptTemplate.from_template("""
 rag_prompt = ChatPromptTemplate.from_messages([
     ("system", """
 당신은 예비·초기 창업자를 도와주는 '창업 지원 통합 AI 어시스턴트'입니다.
+     
+[중요: 현재 시점]
+- 오늘 날짜: 2026년 1월 11일
+- 사용자가 "4월", "3월" 등 월만 언급하면 → 2026년을 의미합니다
+- 문맥에 202６년 이하 과거 날짜만 있는 경우:
+  * 절대 연도를 2026년으로 바꾸지 마세요
+  * "2026년 일정은 아직 공지되지 않았습니다" 안내
+  * 과거 정보를 현재/미래 정보로 변조하지 마세요
+- 사용자가 원하는 것은 2026년 정보이지만, 없으면 솔직히 말하세요
 
 [사용 가능한 정보 유형]
 - 지원사업 공고 (announcement)
@@ -211,6 +222,7 @@ rag_prompt = ChatPromptTemplate.from_messages([
    - 공간·입주 → space
 4. 핵심 답변 후 필요하면 bullet로 정리하세요.
 5. 마지막에 참고 근거 유형을 요약하세요.
+6. ⚠️ 날짜 관련 답변 시 반드시 연도를 명시하세요.
 """),
     ("human", "[문맥]\n{context}\n\n[질문]\n{question}\n\n[답변]")
 ])
@@ -264,9 +276,15 @@ recommend_prompt = ChatPromptTemplate.from_messages([
     ("human", "[지원사업 문맥]\n{context}\n\n[사용자 조건]\n{question}\n\n위 형식에 맞춰 추천해 주세요.")
 ])
 
+# ✅ 수정 4: 일정 추출 프롬프트 개선 (더 명확한 지시)
 EXTRACT_SCHEDULE_PROMPT = """
-당신은 창업 지원 관련 대화에서
-**캘린더에 저장 가능한 확정 일정만 추출하는 전문 비서**입니다.
+당신은 창업 지원 관련 대화에서 **캘린더에 저장 가능한 확정 일정만 추출하는 전문 비서**입니다.
+
+[중요: 현재 시점]
+- 오늘 날짜: 2026년 1월 11일
+- 사용자가 "3월"이라고 하면 → 2026년 3월을 의미합니다
+- 사용자가 "올해"라고 하면 → 2026년을 의미합니다
+- 과거(2026년 1월 11일 이전)의 일정은 절대 추출하지 마세요
 
 [대화 컨텍스트]
 - 원래 질문: {question}
@@ -274,40 +292,155 @@ EXTRACT_SCHEDULE_PROMPT = """
 
 [추출 규칙] ⚠️ 매우 중요
 1. 답변에서 다음 정보를 찾아 JSON 배열로 반환하세요:
-   - 지원사업명, 공고명, 프로그램명
-   - 마감일, 접수 기간, 신청 기한
+   - 지원사업명, 공고명, 프로그램명, 컨퍼런스명, 행사명
+   - 마감일, 접수 기간, 신청 기한, 행사 날짜
 
-2. 날짜 표현 처리:
+2. 날짜 표현 처리 (반드시 2026년 기준):
    - "3월 15일" → "2026-03-15"
    - "3월 중순" → "2026-03-15"
    - "3월 말" → "2026-03-31"
-   - "2주 후" → 현재 날짜(2026-01-08) 기준 계산
-   - 연도가 없으면 2026년으로 가정
+   - "6월 10일" → "2026-06-10"
+   - 연도가 없는 모든 날짜 → **무조건 2026년**으로 가정
 
-3. ❗ 날짜를 **정확히 특정할 수 없는 경우**
+3. ⭐ 특별 규칙: 기간 일정 처리 (매우 중요!)
+   
+   A. 기간 표현 패턴 인식:
+   - "3월 11일부터 13일까지"
+   - "3월 11일 ~ 13일"
+   - "3/11 ~ 3/13"
+   - "3/11-3/13"
+   - "접수: 3.11 ~ 3.13"
+   - "기간: 3월 11일(화) ~ 13일(목)"
+   
+   B. 같은 행사명 + 연속된 날짜 = 기간 일정:
+   답변에 다음과 같이 나오면:
+   - IFS 창업박람회 2026-04-02
+   - IFS 창업박람회 2026-04-03  
+   - IFS 창업박람회 2026-04-04
+   
+   이것은 **3일짜리 기간 일정**입니다!
+   
+   C. 기간 일정 처리 방법:
+   같은 제목의 행사가 여러 날짜에 있으면 → **첫날과 마지막날만** 추출
+   
+   올바른 출력:
+   [
+     {{
+       "title": "[시작] IFS 창업박람회",
+       "date": "2026-04-02",
+       "description": "행사 시작 (기간: 4/2~4/4)"
+     }},
+     {{
+       "title": "[마감] IFS 창업박람회",
+       "date": "2026-04-04",
+       "description": "행사 종료 (기간: 4/2~4/4)"
+     }}
+   ]
+   
+   잘못된 출력 (절대 금지):
+   ❌ 3개로 분리 (4/2, 4/3, 4/4)
+   ❌ [시작], [마감] 태그 없이 추출
+   
+   D. 단일 날짜 행사:
+   하루짜리 행사는 1개만 추출, [시작]/[마감] 태그 불필요
+   
+   E. 여러 행사 혼합:
+   - IFS 창업박람회 (4/2~4/4) → 2개 ([시작], [마감])
+   - 베페 베이비페어 (4/2~4/4) → 2개 ([시작], [마감])
+   - 단일 세미나 (4/5) → 1개
+   
+4. ❗ 과거 일정 절대 금지
+   - 2026년 1월 11일 **이전**의 날짜는 절대 추출하지 마세요
+   - 답변에 "2025년", "2024년" 등이 있으면 → 해당 일정 제외
+   - 과거 행사는 이미 끝났으므로 캘린더에 저장할 필요 없음
+
+5. ❗ 날짜를 정확히 특정할 수 없는 경우
    (예: 날짜 미정, 전국 순회, 추후 공지, 빈 문자열 등)
-   → ❌ 해당 항목은 **절대 JSON에 포함하지 마세요**
-   → ❌ date 필드를 비워두거나 추측하지 마세요
+   → ❌ 해당 항목은 절대 JSON에 포함하지 마세요
 
-4. 여러 사업이 언급되면 각각 별도 항목으로 추출
+6. 중복 제거 필수:
+   같은 행사명이 여러 번 나오면 → 시작일/마지막일만 추출
+   중간 날짜는 모두 생략
 
-5. 출력은 반드시 JSON 배열만 허용합니다
+7. 출력은 반드시 JSON 배열만 허용합니다
    - 일정이 없으면 반드시 [] 만 출력하세요
    - 다른 설명, 주석, 문장은 절대 출력하지 마세요
+   - ```json 같은 마크다운 코드블록도 사용하지 마세요
 
 [출력 형식]
 [
-  {
-    "title": "사업명 또는 일정 제목",
+  {{
+    "title": "행사명 또는 지원사업명",
     "date": "YYYY-MM-DD",
     "description": "간단한 설명"
-  }
+  }}
 ]
+
+[구체적 예시]
+
+예시 1 - 기간 일정 (3일 행사):
+입력 데이터:
+- IFS 창업박람회 2026-04-02
+- IFS 창업박람회 2026-04-03
+- IFS 창업박람회 2026-04-04
+
+출력:
+[
+  {{
+    "title": "[시작] IFS 창업박람회",
+    "date": "2026-04-02",
+    "description": "행사 시작 (4/2~4/4)"
+  }},
+  {{
+    "title": "[마감] IFS 창업박람회",
+    "date": "2026-04-04",
+    "description": "행사 종료 (4/2~4/4)"
+  }}
+]
+
+예시 2 - 여러 기간 행사 혼합:
+입력:
+- A행사 4/2, 4/3, 4/4
+- B행사 4/5, 4/6
+- C세미나 4/10 (하루)
+
+출력:
+[
+  {{"title": "[시작] A행사", "date": "2026-04-02"}},
+  {{"title": "[마감] A행사", "date": "2026-04-04"}},
+  {{"title": "[시작] B행사", "date": "2026-04-05"}},
+  {{"title": "[마감] B행사", "date": "2026-04-06"}},
+  {{"title": "C세미나", "date": "2026-04-10"}}
+]
+
+예시 3 - 접수 기간 표현:
+입력: "접수: 3/11 ~ 3/13"
+출력:
+[
+  {{"title": "[시작] 접수", "date": "2026-03-11"}},
+  {{"title": "[마감] 접수", "date": "2026-03-13"}}
+]
+
+[잘못된 예시]
+❌ {{"title": "행사", "date": "2025-06-10"}} → 과거 날짜
+❌ {{"title": "IFS박람회", "date": "2026-04-02"}}, {{"title": "IFS박람회", "date": "2026-04-03"}} → 중복, [시작]/[마감] 없음
+❌ {{"title": "행사", "date": ""}} → 날짜 없음
+❌ 같은 행사를 3개로 쪼갬
+
+[올바른 예시]
+✅ {{"title": "[시작] AI 컨퍼런스", "date": "2026-03-15"}}
+✅ {{"title": "[마감] AI 컨퍼런스", "date": "2026-03-17"}}
+✅ {{"title": "단일 세미나", "date": "2026-04-10"}}
+✅ [] → 추출 가능한 일정이 없을 때
 
 ⚠️ 금지 사항:
 - "date": "" 사용 금지
 - 날짜 추측 금지
-- 불확실한 일정 출력 금지
+- 과거 날짜(2026-01-11 이전) 추출 금지
+- 기간 일정을 날짜별로 쪼개기 금지
+- 같은 행사명 중복 추출 금지
+- [시작]/[마감] 태그 누락 금지
+- 마크다운 코드블록(```json) 사용 금지
 """
 
 
@@ -327,7 +460,7 @@ relevance_chain = relevance_check_prompt | llm | StrOutputParser()
 fallback_chain = fallback_prompt | llm | StrOutputParser()
 contextualize_q_chain = contextualize_q_prompt | llm | StrOutputParser()
 
-# 일정 추출 체인 - 더 유연한 파싱
+# ✅ 수정 4: JsonOutputParser 사용으로 변경
 extract_prompt_template = ChatPromptTemplate.from_template(EXTRACT_SCHEDULE_PROMPT)
 extract_chain = extract_prompt_template | ChatOpenAI(model="gpt-4o-mini", temperature=0) | StrOutputParser()
 
@@ -494,77 +627,104 @@ def parse_date_flexibly(date_str: str) -> str:
     
     return date_str
 
+# ✅ 수정 4: JSON 추출 로직 대폭 개선
+def extract_json_from_text(text: str) -> str:
+    """LLM 응답에서 JSON 배열만 정확히 추출"""
+    # 1. 마크다운 코드블록 제거
+    text = re.sub(r'```json\s*|\s*```', '', text)
+    
+    # 2. JSON 배열 찾기 (가장 큰 배열 선택)
+    json_pattern = r'\[[\s\S]*?\]'
+    matches = re.findall(json_pattern, text)
+    
+    if not matches:
+        return "[]"
+    
+    # 가장 긴 매칭 (가장 완전한 JSON일 가능성 높음)
+    longest_match = max(matches, key=len)
+    return longest_match.strip()
+
 def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
     """
-    [수정된 함수]
-    - question과 answer 모두 받아서 더 정확한 추출
-    - JSON 파싱 실패 시 상세 로깅
-    - 유연한 날짜 파싱
+    [대폭 개선된 함수]
+    - JSON 추출 로직 강화
+    - 더 상세한 로깅
+    - 오류 처리 개선
     """
     try:
         print(f"📅 일정 추출 시작...")
         print(f"   질문: {question[:100]}...")
         print(f"   답변 길이: {len(answer)} 문자")
         
-        # LLM에게 일정 추출 요청 (StrOutputParser 사용)
+        # LLM에게 일정 추출 요청
         raw_result = extract_chain.invoke({
             "question": question,
             "answer": answer
         })
         
-        print(f"   LLM 응답: {raw_result[:200]}...")
+        print(f"   📝 LLM 원본 응답: {raw_result[:300]}...")
         
-        # JSON 파싱 시도
+        # ✅ 개선된 JSON 추출
+        json_text = extract_json_from_text(raw_result)
+        print(f"   🔍 추출된 JSON: {json_text[:200]}...")
+        
+        # JSON 파싱
         try:
-            # 마크다운 코드 블록 제거
-            cleaned = re.sub(r'```json\s*|\s*```', '', raw_result.strip())
-            events_data = json.loads(cleaned)
+            events_data = json.loads(json_text)
             
             if not isinstance(events_data, list):
                 print(f"⚠️ 응답이 리스트가 아님: {type(events_data)}")
                 return []
             
-            # CalendarEvent 객체로 변환 (날짜 유연 파싱)
+            if len(events_data) == 0:
+                print("ℹ️ 추출된 일정이 없습니다 (빈 배열)")
+                return []
+            
+            # CalendarEvent 객체로 변환
             calendar_events = []
-            for item in events_data:
+            for idx, item in enumerate(events_data):
                 try:
-                    # 날짜 형식 유연하게 처리
                     # 날짜 필드가 없거나 비어 있으면 스킵
                     raw_date = item.get("date", "").strip()
                     if not raw_date:
-                        print("   ⚠️ 날짜 없음 → 일정 스킵")
+                        print(f"   ⚠️ 일정 #{idx+1}: 날짜 없음 → 스킵")
                         continue
 
+                    # 날짜 파싱
                     parsed_date = parse_date_flexibly(raw_date)
-                    item["date"] = parsed_date  
+                    item["date"] = parsed_date
+                    
                     event = CalendarEvent(**item)
                     calendar_events.append(event)
-                    print(f"   ✅ 일정 추출 성공: {event.title} ({event.date})")
+                    print(f"   ✅ 일정 #{idx+1} 추출 성공: {event.title} ({event.date})")
 
                 except Exception as e:
-                    print(f"   ⚠️ 개별 일정 파싱 실패: {e}")
+                    print(f"   ⚠️ 일정 #{idx+1} 파싱 실패: {e}")
                     print(f"      데이터: {item}")
                     continue
             
+            print(f"📅 최종 추출 완료: 총 {len(calendar_events)}개 일정")
             return calendar_events
             
         except json.JSONDecodeError as je:
-            print(f"⚠️ JSON 파싱 실패: {je}")
-            print(f"   원본 응답: {raw_result}")
+            print(f"❌ JSON 파싱 실패: {je}")
+            print(f"   시도한 JSON: {json_text}")
             return []
             
     except Exception as e:
-        print(f"⚠️ 일정 추출 중 오류 발생: {e}")
+        print(f"❌ 일정 추출 중 치명적 오류: {e}")
         import traceback
         traceback.print_exc()
         return []
 
+# ✅ 수정 3: 일정 추출 의도 감지 함수 완화
 def detect_schedule_intent(question: str, answer: str) -> bool:
     """
-    [새로운 함수]
-    질문이나 답변에서 일정 관련 의도를 감지
+    [개선된 함수]
+    더 유연한 일정 추출 조건
+    - 답변에 날짜가 있으면 일정 추출 시도
     """
-    # 확장된 일정 관련 키워드
+    # 기본 키워드 체크
     schedule_keywords = [
         "기록", "저장", "캘린더", "일정",
         "마감", "접수", "신청기간", "기한",
@@ -572,12 +732,12 @@ def detect_schedule_intent(question: str, answer: str) -> bool:
         "신청 기간", "모집 기간"
     ]
     
-    # 질문에서 체크
     question_lower = question.lower()
     if any(k in question_lower for k in schedule_keywords):
+        print("🔍 일정 키워드 감지됨")
         return True
     
-    # 답변에 날짜 패턴이 있는지 체크
+    # ✅ 개선: 답변에 날짜 패턴이 있으면 무조건 시도
     date_patterns = [
         r'\d{4}[-./]\d{1,2}[-./]\d{1,2}',  # 2026-03-15
         r'\d{1,2}월\s*\d{1,2}일',          # 3월 15일
@@ -587,8 +747,10 @@ def detect_schedule_intent(question: str, answer: str) -> bool:
     
     for pattern in date_patterns:
         if re.search(pattern, answer):
+            print(f"🔍 답변에서 날짜 패턴 발견: {pattern}")
             return True
     
+    print("ℹ️ 일정 관련 내용 없음")
     return False
 
 # ========================================
@@ -602,10 +764,10 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
       3) 멀티쿼리 생성 (MQ)
       4) 벡터검색
       5) 최종 분기: 내부 RAG vs. 웹검색/Fallback
-    6) [수정] 일정 추출 로직 개선
+      6) [수정] 일정 추출 로직 개선
       
     Returns:
-        tuple: (answer, source_type)
+        tuple: (answer, source_type, calendar_events)  ← ✅ 항상 3개 반환
     """
     lc_chat_history = []
     for msg in chat_history :
@@ -614,19 +776,18 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
         elif msg.get('role') == 'assistant':
             lc_chat_history.append(AIMessage(content=msg['content']))
 
-    # 1. 독립 질문 생성 (Contextualize) - LLM의 최종 답변 생성 및 웹 검색에 사용
+    # 1. 독립 질문 생성 (Contextualize)
     try:
         standalone_question = contextualize_q_chain.invoke({
             'chat_history' : lc_chat_history,
             'input' : question
         })
     except Exception as e:
-        print(f'질문 재구성 오류: {e}. 원본 질문 사용.')
+        print(f'⚠️ 질문 재구성 오류: {e}. 원본 질문 사용.')
         standalone_question = question
 
     print(f'[히스토리] 독립 질문: {standalone_question}')
 
-    # 2. 내부 RAG 검색용 Query Transform (QT) 
     # 2. Query Transform
     try:
         qt_result = qt_chain.invoke({"question": standalone_question})
@@ -644,7 +805,7 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
 
     print(f"[QT] 변환: {rag_qt_query}")
     
-    # 3. 멀티 쿼리 (MQ) - 내부 RAG 검색에 사용
+    # 3. 멀티 쿼리 (MQ)
     try:
         mq_text = multi_query_chain.invoke({"question": rag_qt_query})
         queries = [line.strip() for line in mq_text.splitlines() if line.strip()]
@@ -652,7 +813,7 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
         queries = [rag_qt_query]
     print(f"[멀티쿼리] {len(queries)}개: {queries}")
 
-    # 4. Vector search (멀티쿼리)
+    # 4. Vector search
     all_docs = search_documents(queries)
     print(f"[검색] 총 {len(all_docs)}개 문서 후보 확보")
 
@@ -687,31 +848,36 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
         except Exception as e:
             print(f"⚠️ 웹검색 실패: {e}")
             answer = fallback_chain.invoke({"question": standalone_question})
+            # ✅ 수정 2: 항상 3개 값 반환
             return answer, "fallback", []
 
         if not web_docs:
             print("⚠️ 웹검색 결과 없음 → LLM 자체지식으로 응답")
             answer = fallback_chain.invoke({"question": standalone_question})
+            # ✅ 수정 2: 항상 3개 값 반환
             return answer, "fallback", []
         
         answer = rag_answer_from_docs(standalone_question, web_docs)
         source_type = "web-search"
 
-    # 7. [수정된] 일정 추출 로직
+    # 7. [개선된] 일정 추출 로직
     calendar_events = []
     
-    # 일정 추출 의도 감지
+    # ✅ 수정 3: 개선된 의도 감지 함수 사용
     if detect_schedule_intent(question, answer):
         print("📅 일정 관련 내용 감지 → 일정 추출 시도")
         calendar_events = extract_calendar_events(standalone_question, answer)
         
         if calendar_events:
             print(f"✅ {len(calendar_events)}개 일정 추출 완료")
+            for evt in calendar_events:
+                print(f"   - {evt.title} ({evt.date})")
         else:
             print("⚠️ 일정을 추출하지 못했습니다")
     else:
-        print("ℹ️ 일정 추출 불필요")
+        print("ℹ️ 일정 추출 조건 미충족")
 
+    # ✅ 수정 2: 항상 3개 값 반환
     return answer, source_type, calendar_events
 
 # ========================================
@@ -766,12 +932,12 @@ async def chat(request: ChatRequest):
             source_type=source_type
         )
 
-        # ✅ 5. 응답 반환
+        # ✅ 5. 응답 반환 (session_id 포함)
         return ChatResponse(
             answer=answer,
             source_type=source_type,
             calendar_suggestion=calendar_suggestion,
-            session_id=session_id
+            session_id=session_id  # ✅ 수정 1: session_id 반환
         )
 
     except Exception as e:
@@ -872,13 +1038,19 @@ async def analyze(request: ChatRequest):
         
         print(f"[분석 API 응답] 분석 결과 길이: {len(answer)} 문자")
         
-        return ChatResponse(answer=answer, source_type="ai-analysis")
+        return ChatResponse(
+            answer=answer, 
+            source_type="ai-analysis",
+            calendar_suggestion=None,
+            session_id=None
+        )
         
     except Exception as e:
         print(f"[분석 API 오류] {e}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"분석 중 오류 발생: {str(e)}")
+
 @app.get("/my_calendar", response_class=HTMLResponse)
 async def get_calendar_page(request: Request):
     # my_calendar.html 파일을 브라우저에 띄워줍니다.
@@ -896,6 +1068,7 @@ async def save_calendar_event(event: SaveEventRequest):
     except Exception as e:
         print(f"❌ 저장 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 # ========================================
 # 서버 실행
 # ========================================

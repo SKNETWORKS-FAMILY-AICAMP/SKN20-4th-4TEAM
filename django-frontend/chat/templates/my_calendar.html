@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -9,7 +10,8 @@
         
         body {
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background: linear-gradient(180deg, #e8f4fc 0%, #d0ebf7 100%);
+            background: linear-gradient(180deg, #e8f4fc 0%, #ade1f8 100%);
+            animation: gradientAnimation 5s ease infinite;
             min-height: 100vh;
             padding: 20px;
         }
@@ -40,7 +42,31 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom:60px; /* 간격 소폭 조정 */
+        }
+
+        /* [추가/수정] 사용자 프로필 이미지 스타일 */
+        .user-profile {
+            text-align: center;
             margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(0, 168, 232, 0.1);
+        }
+
+        .user-profile img {
+            width: 140px;  /* 이미지 크기 */
+            height: 140px;
+            border-radius: 50%; /* 원형으로 만들기 */
+            border: 4px solid #00a8e8; /* 보스 베이비 포인트 컬러 테두리 */
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0, 168, 232, 0.2);
+            margin-bottom: 12px;
+        }
+
+        .user-profile .user-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1d2e;
         }
 
         .logo-icon {
@@ -126,319 +152,59 @@
             gap: 8px;
         }
 
-        /* 메인 영역 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            overflow-y: auto;
-        }
-
-        .content-header {
-            padding: 24px 32px;
-            border-bottom: 1px solid rgba(0, 168, 232, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.98);
-        }
-
-        .header-title h2 {
-            color: #00a8e8;
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        .action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: rgba(0, 168, 232, 0.1);
-            border: none;
-            color: #00a8e8;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .action-btn:hover {
-            background: rgba(0, 168, 232, 0.2);
-            transform: scale(1.05);
-        }
-
-        .content-body {
-            flex: 1;
-            padding: 32px;
-            background: #f8fbfd;
-            overflow-y: auto;
-        }
-
-        /* 캘린더 네비게이션 */
-        .calendar-nav {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            margin-bottom: 32px;
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .month-nav-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
-            color: white;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s;
-        }
-
-        .month-nav-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.4);
-        }
-
-        .current-month {
-            font-size: 24px;
-            font-weight: 700;
-            color: #00a8e8;
-            min-width: 200px;
-            text-align: center;
-        }
-
-        /* 캘린더 그리드 */
-        .calendar-container {
-            background: white;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 168, 232, 0.1);
-            margin-bottom: 24px;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-
-        .day-header {
-            text-align: center;
-            padding: 16px 8px;
-            font-weight: 600;
-            color: #666;
-            font-size: 14px;
-        }
-
+        /* 메인 영역 및 나머지 스타일 생략 (기존과 동일) */
+        .main-content { flex: 1; display: flex; flex-direction: column; background: white; overflow-y: auto; }
+        .content-header { padding: 24px 32px; border-bottom: 1px solid rgba(0, 168, 232, 0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.98); }
+        .header-title h2 { color: #00a8e8; font-size: 20px; font-weight: 600; }
+        .header-actions { display: flex; gap: 12px; }
+        .action-btn { width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 168, 232, 0.1); border: none; color: #00a8e8; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .action-btn:hover { background: rgba(0, 168, 232, 0.2); transform: scale(1.05); }
+        .content-body { flex: 1; padding: 32px; background: #f8fbfd; overflow-y: auto; }
+        .calendar-nav { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 32px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .month-nav-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%); color: white; cursor: pointer; font-size: 18px; transition: all 0.3s; }
+        .month-nav-btn:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(0, 168, 232, 0.4); }
+        .current-month { font-size: 24px; font-weight: 700; color: #00a8e8; min-width: 200px; text-align: center; }
+        .calendar-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 168, 232, 0.1); margin-bottom: 24px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .day-header { text-align: center; padding: 16px 8px; font-weight: 600; color: #666; font-size: 14px; }
         .day-header.sunday { color: #f87171; }
         .day-header.saturday { color: #60a5fa; }
-
-        .day-cell {
-            min-height: 120px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            border: 2px solid transparent;
-        }
-
-        .day-cell:hover {
-            background: rgba(0, 168, 232, 0.05);
-            border-color: #00a8e8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.2);
-        }
-
-        .day-cell.other-month {
-            opacity: 0.3;
-        }
-
-        .day-cell.today {
-            background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%);
-            color: white;
-        }
-
-        .day-number {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
+        .day-cell { min-height: 120px; background: #f8f9fa; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.3s; position: relative; border: 2px solid transparent; }
+        .day-cell:hover { background: rgba(0, 168, 232, 0.05); border-color: #00a8e8; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 168, 232, 0.2); }
+        .day-cell.other-month { opacity: 0.3; }
+        .day-cell.today { background: linear-gradient(135deg, #00a8e8 0%, #0077b3 100%); color: white; }
+        .day-number { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
         .day-cell.sunday .day-number { color: #f87171; }
         .day-cell.saturday .day-number { color: #60a5fa; }
         .day-cell.today .day-number { color: white; }
-
-        .event-badge {
-            font-size: 11px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .event-badge.deadline {
-            background: rgba(248, 113, 113, 0.2);
-            color: #dc2626;
-        }
-
-        .event-badge.start {
-            background: rgba(74, 222, 128, 0.2);
-            color: #16a34a;
-        }
-
-        /* 이벤트 리스트 */
-        .event-list-container {
-            background: white;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 168, 232, 0.1);
-        }
-
-        .event-list-container h2 {
-            font-size: 20px;
-            margin-bottom: 24px;
-            color: #00a8e8;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .event-item {
-            background: #f8fbfd;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            border-left: 4px solid #00a8e8;
-            transition: all 0.3s;
-        }
-
-        .event-item:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 15px rgba(0, 168, 232, 0.15);
-        }
-
-        .event-item.completed {
-            opacity: 0.6;
-            text-decoration: line-through;
-        }
-
-        .event-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .event-title {
-            font-weight: 600;
-            font-size: 16px;
-            color: #1a1d2e;
-        }
-
-        .event-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .event-btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .complete-btn {
-            background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
-            color: white;
-        }
-
-        .complete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
-        }
-
-        .delete-btn {
-            background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3);
-        }
-
-        .event-date {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .d-day {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-
-        .d-day.urgent {
-            background: rgba(248, 113, 113, 0.2);
-            color: #dc2626;
-        }
-
-        .d-day.soon {
-            background: rgba(251, 191, 36, 0.2);
-            color: #f59e0b;
-        }
-
-        .d-day.normal {
-            background: rgba(74, 222, 128, 0.2);
-            color: #16a34a;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-        }
+        .event-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .event-badge.deadline { background: rgba(248, 113, 113, 0.2); color: #dc2626; }
+        .event-badge.start { background: rgba(74, 222, 128, 0.2); color: #16a34a; }
+        .event-list-container { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 168, 232, 0.1); }
+        .event-list-container h2 { font-size: 20px; margin-bottom: 24px; color: #00a8e8; display: flex; align-items: center; gap: 8px; }
+        .event-item { background: #f8fbfd; padding: 20px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid #00a8e8; transition: all 0.3s; }
+        .event-item:hover { transform: translateX(4px); box-shadow: 0 4px 15px rgba(0, 168, 232, 0.15); }
+        .event-item.completed { opacity: 0.6; text-decoration: line-through; }
+        .event-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .event-title { font-weight: 600; font-size: 16px; color: #1a1d2e; }
+        .event-actions { display: flex; gap: 8px; }
+        .event-btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s; }
+        .complete-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: white; }
+        .complete-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3); }
+        .delete-btn { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: white; }
+        .delete-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(248, 113, 113, 0.3); }
+        .event-date { color: #666; font-size: 14px; margin-bottom: 8px; }
+        .d-day { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 8px; }
+        .d-day.urgent { background: rgba(248, 113, 113, 0.2); color: #dc2626; }
+        .d-day.soon { background: rgba(251, 191, 36, 0.2); color: #f59e0b; }
+        .d-day.normal { background: rgba(74, 222, 128, 0.2); color: #16a34a; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state-icon { font-size: 64px; margin-bottom: 16px; }
+        .empty-state p { font-size: 16px; }
     </style>
 </head>
 <body>
     <div class="calendar-wrapper">
-        <!-- 사이드바 -->
         <div class="sidebar">
             <div class="logo">
                 <div class="logo-icon">📅</div>
@@ -446,6 +212,9 @@
                     <h1>Boss Calendar</h1>
                     <p>창업 일정 관리</p>
                 </div>
+            </div>
+            <div class="user-profile">
+                <img src="{% static 'baby_desk.png' %}" alt="Boss Baby Mascot">
             </div>
 
             <div class="sidebar-section">
@@ -468,7 +237,6 @@
             </div>
         </div>
 
-        <!-- 메인 컨텐츠 -->
         <div class="main-content">
             <div class="content-header">
                 <div class="header-title">
@@ -481,19 +249,16 @@
             </div>
 
             <div class="content-body">
-                <!-- 월 네비게이션 -->
                 <div class="calendar-nav">
                     <button class="month-nav-btn" onclick="changeMonth(-1)">◀</button>
                     <div class="current-month" id="currentMonth"></div>
                     <button class="month-nav-btn" onclick="changeMonth(1)">▶</button>
                 </div>
 
-                <!-- 캘린더 -->
                 <div class="calendar-container">
                     <div class="calendar-grid" id="calendarGrid"></div>
                 </div>
 
-                <!-- 다가오는 일정 -->
                 <div class="event-list-container">
                     <h2>📋 다가오는 일정</h2>
                     <div id="eventList"></div>
@@ -507,7 +272,6 @@
         let events = [];
 
         async function initCalendar() {
-            console.log("🚀 캘린더 초기화 시작");
             await loadEvents();
             renderCalendar();
             renderEventList();
@@ -520,29 +284,19 @@
                 const month = currentDate.getMonth() + 1;
                 const response = await fetch(`/api/calendar/events/?year=${year}&month=${month}`);
                 const data = await response.json();
-                
-                console.log("📥 서버 데이터 수신:", data);
-
-                if (data.success) {
-                    events = data.events;
-                }
-            } catch (error) {
-                console.error('일정 불러오기 오류:', error);
-            }
+                if (data.success) { events = data.events; }
+            } catch (error) { console.error('일정 불러오기 오류:', error); }
         }
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             document.getElementById('currentMonth').textContent = `${year}년 ${month + 1}월`;
-
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const prevLastDay = new Date(year, month, 0);
-            
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
-
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             days.forEach((day, i) => {
                 const header = document.createElement('div');
@@ -550,46 +304,29 @@
                 header.textContent = day;
                 grid.appendChild(header);
             });
-
-            // 이전 달 빈 칸
-            for (let i = firstDay.getDay() - 1; i >= 0; i--) {
-                grid.appendChild(createDayCell(prevLastDay.getDate() - i, month - 1, year, true));
-            }
-
-            // 이번 달 날짜
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                grid.appendChild(createDayCell(day, month, year, false));
-            }
-
-            // 다음 달 빈 칸
+            for (let i = firstDay.getDay() - 1; i >= 0; i--) { grid.appendChild(createDayCell(prevLastDay.getDate() - i, month - 1, year, true)); }
+            for (let day = 1; day <= lastDay.getDate(); day++) { grid.appendChild(createDayCell(day, month, year, false)); }
             const currentTotalCells = grid.children.length - 7;
-            for (let day = 1; day <= (42 - currentTotalCells); day++) {
-                grid.appendChild(createDayCell(day, month + 1, year, true));
-            }
+            for (let day = 1; day <= (42 - currentTotalCells); day++) { grid.appendChild(createDayCell(day, month + 1, year, true)); }
         }
 
         function createDayCell(day, month, year, isOtherMonth) {
             const cell = document.createElement('div');
             cell.className = 'day-cell' + (isOtherMonth ? ' other-month' : '');
-
             const targetDate = new Date(year, month, day);
             const fYear = targetDate.getFullYear();
             const fMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
             const fDay = String(targetDate.getDate()).padStart(2, '0');
             const dateStr = `${fYear}-${fMonth}-${fDay}`;
-
             const today = new Date();
             if (targetDate.toDateString() === today.toDateString()) cell.classList.add('today');
-
             const dayOfWeek = targetDate.getDay();
             if (dayOfWeek === 0) cell.classList.add('sunday');
             if (dayOfWeek === 6) cell.classList.add('saturday');
-
             const dayNumber = document.createElement('div');
             dayNumber.className = 'day-number';
             dayNumber.textContent = day;
             cell.appendChild(dayNumber);
-
             const dayEvents = events.filter(e => e.event_date === dateStr);
             dayEvents.forEach(event => {
                 const badge = document.createElement('div');
@@ -599,7 +336,6 @@
                 badge.title = event.title;
                 cell.appendChild(badge);
             });
-
             return cell;
         }
 
@@ -607,21 +343,15 @@
             const listDiv = document.getElementById('eventList');
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
-            const upcomingEvents = events
-                .filter(e => !e.is_completed && new Date(e.event_date) >= today)
-                .sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
-
+            const upcomingEvents = events.filter(e => !e.is_completed && new Date(e.event_date) >= today).sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
             if (upcomingEvents.length === 0) {
                 listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔭</div><p>예정된 일정이 없습니다.</p></div>';
                 return;
             }
-
             listDiv.innerHTML = upcomingEvents.map(event => {
                 const dDay = event.days_remaining;
                 const dDayClass = dDay <= 3 ? 'urgent' : dDay <= 7 ? 'soon' : 'normal';
                 const dDayText = dDay === 0 ? 'D-Day' : dDay < 0 ? `D+${Math.abs(dDay)}` : `D-${dDay}`;
-
                 return `
                     <div class="event-item ${event.is_completed ? 'completed' : ''}">
                         <div class="event-item-header">
@@ -641,38 +371,16 @@
             const total = events.length;
             const completed = events.filter(e => e.is_completed).length;
             const active = total - completed;
-
             document.getElementById('totalEvents').textContent = total;
             document.getElementById('activeEvents').textContent = active;
             document.getElementById('completedEvents').textContent = completed;
         }
 
-        async function changeMonth(delta) { 
-            currentDate.setMonth(currentDate.getMonth() + delta); 
-            await initCalendar(); 
-        }
-        
-        async function goToToday() { 
-            currentDate = new Date(); 
-            await initCalendar(); 
-        }
-        
-        async function toggleComplete(id) {
-            await fetch(`/api/calendar/events/${id}/toggle/`, { method: 'PATCH' });
-            await initCalendar();
-        }
-
-        async function deleteEvent(id) {
-            if (confirm('삭제하시겠습니까?')) {
-                await fetch(`/api/calendar/events/${id}/delete/`, { method: 'DELETE' });
-                await initCalendar();
-            }
-        }
-
-        function newChat() {
-            alert('새 일정 추가 기능은 준비 중입니다.');
-        }
-
+        async function changeMonth(delta) { currentDate.setMonth(currentDate.getMonth() + delta); await initCalendar(); }
+        async function goToToday() { currentDate = new Date(); await initCalendar(); }
+        async function toggleComplete(id) { await fetch(`/api/calendar/events/${id}/toggle/`, { method: 'PATCH' }); await initCalendar(); }
+        async function deleteEvent(id) { if (confirm('삭제하시겠습니까?')) { await fetch(`/api/calendar/events/${id}/delete/`, { method: 'DELETE' }); await initCalendar(); } }
+        function newChat() { alert('새 일정 추가 기능은 준비 중입니다.'); }
         window.addEventListener('load', initCalendar);
     </script>
 </body>

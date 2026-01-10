@@ -14,7 +14,8 @@
 
         body {
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-            background: linear-gradient(180deg, #e8f4fc 0%, #d0ebf7 100%);
+            background: linear-gradient(180deg, #e8f4fc 0%, #ade1f8 100%);
+            animation: gradientAnimation 5s ease infinite;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -35,7 +36,7 @@
         .sidebar {
             width: 280px;
             background: rgba(255, 255, 255, 0.98);
-            padding: 24px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             border-right: 1px solid rgba(0, 168, 232, 0.1);
@@ -45,7 +46,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .logo-icon {
@@ -71,6 +72,36 @@
             margin-top: 4px;
         }
 
+        /* 사용자 프로필 섹션 수정 */
+        .user-profile {
+            /* 기존 flex 속성을 세로 방향으로 변경합니다 */
+            display: flex;
+            flex-direction: column; /* 이미지와 텍스트를 위아래로 쌓음 */
+            align-items: center; /* 수직 정렬 시 가로 가운데 정렬 */
+            justify-content: center;
+            
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(0, 168, 232, 0.1);
+        }
+
+        /* 이미지 아래에 마진을 주어 텍스트와 간격을 띄웁니다 */
+        .user-profile img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid #00a8e8;
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0, 168, 232, 0.2);
+            margin-bottom: 15px; /* 텍스트와의 간격 조절 */
+        }
+        .user-profile .user-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1d2e;
+        }
+        
         .category {
             margin-bottom: 24px;
         }
@@ -678,28 +709,22 @@
             <div class="logo">
                 <div class="logo-icon">🚀</div>
                 <div class="logo-text">
-                    <h1>Startup AI</h1>
+                    <h1>BOSS BABY AI</h1>
                     <p>창업 지원 어시스턴트</p>
                 </div>
             </div>
-
+            <div class="user-profile">
+                <img src="{% static 'baby_desk.png' %}" alt="Boss Baby Mascot">
+                <div class="user-name">Welcome, Boss!</div>
+            </div>
             <!-- 사용자 섹션 -->
             <div class="user-section">
-                <button class="logout-btn" onclick="goToMyPage()" title="마이페이지" style="margin-bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <button class="logout-btn" onclick="goToMyPage()" title="마이페이지" style="margin-bottom: 10px;">
                     <span class="logout-icon">👤</span> 마이페이지
                 </button>
                 <button class="logout-btn" onclick="logout()" title="로그아웃">
                     <span class="logout-icon">🚪</span> 로그아웃
                 </button>
-            </div>
-
-            <div class="category">
-                <div class="category-title">📂 카테고리</div>
-                <div class="category-item active" data-query="">💡 전체</div>
-                <div class="category-item" data-query="지원사업 추천해줘">💰 지원사업</div>
-                <div class="category-item" data-query="창업 공간 정보 알려줘">🏢 창업 공간</div>
-                <div class="category-item" data-query="창업자 자격요건이 뭔가요?">📋 법령/제도</div>
-                <div class="category-item" data-query="창업 실패 사례와 교훈">📚 사례 분석</div>
             </div>
 
             <div class="category">
@@ -723,7 +748,7 @@
         <div class="main-chat">
             <div class="chat-header">
                 <div class="header-title">
-                    <h2>창업 지원 AI 어시스턴트</h2>
+                    <h2></h2>
                 </div>
                 <div class="header-actions">
                     <button class="action-btn" onclick="location.href='/my-chats/'" title="채팅 내역">📜</button>
@@ -756,7 +781,7 @@
                     📋 법령 확인
                 </div>
                 <div class="quick-reply" onclick="quickReply('창업 공간은 어디서 찾나요?')">
-                    🏢 공간 찾기
+                    🏢 창업 공간 찾기
                 </div>
                 <div class="quick-reply" onclick="quickReply('판매가 저조할 때 어떻게 하나요?')">
                     💡 성공 팁
