@@ -215,24 +215,6 @@
                                         {{ plan.executive_summary|truncatechars:100 }}
                                     </p>
                                 {% endif %}
-
-                                <!-- 완성도 프로그레스 바 -->
-                                <div class="mb-3">
-                                    <div class="completion-info">
-                                        <small class="text-muted">완성도</small>
-                                        <span class="completion-percentage">{{ plan.completion_percentage|floatformat:0 }}%</span>
-                                    </div>
-                                    <div class="progress">
-                                        {% if plan.completion_percentage >= 80 %}
-                                            <div class="progress-bar bg-success" style="width: {{ plan.completion_percentage }}%"></div>
-                                        {% elif plan.completion_percentage >= 50 %}
-                                            <div class="progress-bar bg-warning" style="width: {{ plan.completion_percentage }}%"></div>
-                                        {% else %}
-                                            <div class="progress-bar bg-danger" style="width: {{ plan.completion_percentage }}%"></div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
                                 <!-- 재무 정보 -->
                                 {% if plan.required_funding %}
                                     <div class="mb-3">
