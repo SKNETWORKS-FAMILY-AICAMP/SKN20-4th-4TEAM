@@ -30,7 +30,6 @@ from database import (
     engine
 )
 
-
 templates = Jinja2Templates(directory="templates")
 warnings.filterwarnings("ignore")
 load_dotenv()
@@ -60,6 +59,7 @@ app.add_middleware(
 
 # 요청/응답 모델
 
+# 1. 가장 기초 부품
 class CalendarEvent(BaseModel):
     title: str = Field(description="일정 제목 (예: 지원사업 마감)")
     date: str = Field(description="YYYY-MM-DD 형식의 날짜")
@@ -75,29 +75,33 @@ class CalendarEvent(BaseModel):
         except ValueError:
             raise ValueError(f'날짜는 YYYY-MM-DD 형식이어야 합니다: {v}')
 
+# 2. 부품을 사용하는 묶음
 class CalendarEventList(RootModel[List[CalendarEvent]]):
     pass
 
-class ChatRequest(BaseModel):
-    question: str
-    chat_history: List[dict] = []
-    session_id: int | None = None
-
+# 3. 로그인 및 기타 요청
 class LoginRequest(BaseModel):
     email: str
     password: str
     session_id: int | None = None
 
+class SaveEventRequest(BaseModel):
+    title: str
+    date: str
+    description: Optional[str] = None
+
+# 4. 채팅 요청
+class ChatRequest(BaseModel):
+    question: str
+    chat_history: List[dict] = []
+    session_id: int | None = None
+
+# 5. 모든 정보를 취합하여 내보내는 최종 응답
 class ChatResponse(BaseModel):
     answer: str
     source_type: str
     calendar_suggestion: Optional[List[CalendarEvent]] = None
     session_id: Optional[int] = None
-
-class SaveEventRequest(BaseModel):
-    title: str
-    date: str
-    description: Optional[str] = None
 
 # ========================================
 # 벡터DB 및 LLM 초기화
@@ -179,7 +183,7 @@ qt_prompt = ChatPromptTemplate.from_template("""
 변환된 검색용 문장:""")
 
 # ========================================
-# 🆕 수정 1: 멀티쿼리 프롬프트에 현재 연도 명시
+# 멀티쿼리 프롬프트에 현재 연도 명시
 # ========================================
 multi_query_prompt = ChatPromptTemplate.from_template("""
 [중요] 오늘은 2026년 1월 11일입니다.
@@ -278,7 +282,7 @@ recommend_prompt = ChatPromptTemplate.from_messages([
 ])
 
 # ========================================
-# 🆕 수정 2: 일정 추출 프롬프트 대폭 단순화
+# 일정 추출 프롬프트
 # ========================================
 EXTRACT_SCHEDULE_PROMPT = """
 당신은 텍스트에서 일정을 추출하는 AI입니다.
@@ -452,9 +456,9 @@ def rag_answer_from_docs(question: str, documents):
 
 
 # ========================================
-# 🆕 수정 3: Python 후처리 함수 추가
+# Python 후처리 함수 추가 - 일정
 # ========================================
-
+# 날짜 형식 통일하기
 def parse_date_flexibly(date_str: str) -> str:
     """다양한 날짜 표현을 YYYY-MM-DD 형식으로 변환"""
     current_year = 2026
@@ -481,9 +485,10 @@ def parse_date_flexibly(date_str: str) -> str:
     
     return date_str
 
+# 데이터 다듬기 및 통합
 def post_process_calendar_events(raw_events: List[dict]) -> List[CalendarEvent]:
     """
-    🆕 LLM이 추출한 원시 데이터를 Python으로 후처리
+    LLM이 추출한 원시 데이터를 Python으로 후처리
     
     처리 작업:
     1. 과거 날짜 필터링 (2026-01-11 이전 제거)
@@ -516,7 +521,7 @@ def post_process_calendar_events(raw_events: List[dict]) -> List[CalendarEvent]:
     for event in future_events:
         if len(event['title']) > 30:
             event['title'] = event['title'][:27] + "..."
-            print(f"   ✂️ 제목 자르기: {event['title']}")
+            print(f" 제목 자르기: {event['title']}")
     
     # 3. 같은 제목끼리 그룹화
     grouped = defaultdict(list)
@@ -535,7 +540,7 @@ def post_process_calendar_events(raw_events: List[dict]) -> List[CalendarEvent]:
         if len(events) == 1:
             # 단일 일정
             final_events.append(events[0])
-            print(f"   📌 단일 일정: {title} ({events[0]['date']})")
+            print(f" 단일 일정: {title} ({events[0]['date']})")
         else:
             # 연속된 날짜인지 확인
             dates = [datetime.strptime(e['date'], '%Y-%m-%d').date() for e in events]
@@ -579,11 +584,13 @@ def post_process_calendar_events(raw_events: List[dict]) -> List[CalendarEvent]:
     print(f"🔧 후처리 완료: 최종 {len(calendar_events)}개 일정")
     return calendar_events
 
+# 텍스트에서 데이터 뽑기
 def extract_json_from_text(text: str) -> str:
     """LLM 응답에서 JSON 배열만 정확히 추출"""
-    text = re.sub(r'```json\s*|\s*```', '', text)
+    text = re.sub(r'```json\s*|\s*```', '', text)   # 대괄호 [ 로 시작해서 ] 로 끝나는 JSON 배열 통째로 찾기
+    # ai 가 답변으로 준 json [데이터] 에서 앞뒤 껍데기를 떼어내고 알맹이([데이터])만 남깁
     
-    json_pattern = r'\[[\s\S]*?\]'
+    json_pattern = r'\[[\s\S]*?\]'  # 대괄호 [ 로 시작해서 ] 로 끝나는 JSON 배열 통째로 찾아라
     matches = re.findall(json_pattern, text)
     
     if not matches:
@@ -592,9 +599,10 @@ def extract_json_from_text(text: str) -> str:
     longest_match = max(matches, key=len)
     return longest_match.strip()
 
+# 텍스트에서 데이터 뽑기
 def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
     """
-    🆕 수정된 함수: LLM 추출 → Python 후처리
+    LLM 추출 → Python 후처리
     """
     try:
         print(f"📅 일정 추출 시작...")
@@ -625,7 +633,7 @@ def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
                 print("ℹ️ 추출된 일정이 없습니다 (빈 배열)")
                 return []
             
-            # 🆕 Python 후처리로 모든 로직 처리
+            # Python 후처리로 모든 로직 처리
             calendar_events = post_process_calendar_events(raw_events)
             
             print(f"📅 최종 추출 완료: 총 {len(calendar_events)}개 일정")
@@ -645,6 +653,7 @@ def extract_calendar_events(question: str, answer: str) -> List[CalendarEvent]:
         traceback.print_exc()
         return []
 
+# 일정인지 아닌지 판단하기
 def detect_schedule_intent(question: str, answer: str) -> bool:
     """
     답변에 날짜가 있으면 일정 추출 시도
@@ -662,8 +671,8 @@ def detect_schedule_intent(question: str, answer: str) -> bool:
         return True
     
     date_patterns = [
-        r'\d{4}[-./]\d{1,2}[-./]\d{1,2}',
-        r'\d{1,2}월\s*\d{1,2}일',
+        r'\d{4}[-./]\d{1,2}[-./]\d{1,2}',   # 날짜 형식(2026-01-11)을 찾아라
+        r'\d{1,2}월\s*\d{1,2}일',           # 한국어 날짜 표현(1월 11일)을 찾아라
         r'\d{1,2}월\s*(초|중순|말)',
         r'(접수|마감|신청)\s*(기간|기한)',
     ]
@@ -781,7 +790,7 @@ def multi_query_rag_with_qt(question: str, chat_history: List[dict], top_k=10, s
         answer = rag_answer_from_docs(standalone_question, web_docs)
         source_type = "web-search"
 
-    # 7. 일정 추출 - 🆕 Python 후처리 적용
+    # 7. 일정 추출 - Python 후처리 적용
     calendar_events = []
     
     if detect_schedule_intent(question, answer):
