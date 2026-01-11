@@ -210,9 +210,6 @@
                                                     </a>
                                                 </h6>
                                                 <p class="mb-1 text-muted small">{{ plan.business_name }}</p>
-                                                <div class="progress completion-bar mb-1">
-                                                    <div class="progress-bar" style="width: {{ plan.completion_percentage }}%"></div>
-                                                </div>
                                                 <small class="text-muted">{{ plan.updated_at|date:"m월 d일" }}</small>
                                             </div>
                                             <span class="badge bg-secondary">{{ plan.get_business_type_display }}</span>

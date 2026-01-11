@@ -30,7 +30,7 @@
 
         /* 사이드바 */
         .sidebar {
-            width: 280px;
+            width: 400px;
             background: rgba(255, 255, 255, 0.98);
             padding: 24px;
             display: flex;
@@ -216,17 +216,6 @@
             <div class="user-profile">
                 <img src="{% static 'baby_desk.png' %}" alt="Boss Baby Mascot">
             </div>
-
-            <div class="sidebar-section">
-                <div class="section-title">🎯 빠른 이동</div>
-                <button class="quick-action-btn primary" onclick="goToToday()">
-                    📍 오늘로 이동
-                </button>
-                <button class="quick-action-btn" onclick="location.href='/chat/'">
-                    💬 채팅으로 돌아가기
-                </button>
-            </div>
-
             <div class="sidebar-section">
                 <div class="section-title">📊 이번 달 통계</div>
                 <div class="stats-box">
@@ -235,8 +224,10 @@
                     <div class="stat-item">✅ 완료: <span id="completedEvents">-</span>개</div>
                 </div>
             </div>
-        </div>
-
+            <div class="event-list-container">
+                                <h2>📋 다가오는 일정</h2>
+                                <div id="eventList"></div>
+                            </div></div>
         <div class="main-content">
             <div class="content-header">
                 <div class="header-title">
@@ -244,10 +235,10 @@
                 </div>
                 <div class="header-actions">
                     <button class="action-btn" onclick="location.reload()" title="새로고침">🔄</button>
-                    <button class="action-btn" onclick="newChat()" title="새 일정">➕</button>
+                    <button class="quick-action-btn" onclick="goToToday()" title="오늘로이동">Today</button>
+                    <button class="quick-action-btn" onclick="location.href='/chat/'" title="채팅으로">Chat</button>
                 </div>
             </div>
-
             <div class="content-body">
                 <div class="calendar-nav">
                     <button class="month-nav-btn" onclick="changeMonth(-1)">◀</button>
@@ -258,14 +249,8 @@
                 <div class="calendar-container">
                     <div class="calendar-grid" id="calendarGrid"></div>
                 </div>
-
-                <div class="event-list-container">
-                    <h2>📋 다가오는 일정</h2>
-                    <div id="eventList"></div>
-                </div>
             </div>
-        </div>
-    </div>
+        </div> 
 
     <script>
         let currentDate = new Date();
