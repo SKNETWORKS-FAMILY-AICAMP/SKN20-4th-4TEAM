@@ -340,13 +340,12 @@
                 return `
                     <div class="event-item ${event.is_completed ? 'completed' : ''}">
                         <div class="event-item-header">
-                            <div class="event-title">${event.title}</div>
-                            <div class="event-actions">
+                            <div class="event-title">${event.title}</div> </div>
+                        <div class="event-date">📅 ${event.event_date} <span class="d-day ${dDayClass}">${dDayText}</span></div>
+                        <div class="event-actions">
                                 <button class="event-btn complete-btn" onclick="toggleComplete(${event.id})">${event.is_completed ? '취소' : '완료'}</button>
                                 <button class="event-btn delete-btn" onclick="deleteEvent(${event.id})">삭제</button>
                             </div>
-                        </div>
-                        <div class="event-date">📅 ${event.event_date} <span class="d-day ${dDayClass}">${dDayText}</span></div>
                     </div>
                 `;
             }).join('');
