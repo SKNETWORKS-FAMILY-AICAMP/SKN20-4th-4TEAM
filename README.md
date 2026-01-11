@@ -32,12 +32,12 @@
     </td>
     <td align="center">
       <img src="img/정래원img.jpeg" width="180" alt="정래원"/><br/>
-      <b>정래원</b><br/>
+      <b>정래원 (팀장)</b><br/>
       <sub>Frontend & UI/UX</sub>
     </td>
     <td align="center">
       <img src="img/최소영img.jpeg" width="180" alt="최소영"/><br/>
-      <b>최소영 (리더)</b><br/>
+      <b>최소영 </b><br/>
       <sub>Backend & RAG System</sub>
     </td>
     <td align="center">
