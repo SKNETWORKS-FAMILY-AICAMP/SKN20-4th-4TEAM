@@ -19,7 +19,7 @@ import uuid
 import re
 
 # FastAPI 서버 주소
-FASTAPI_URL = "http://localhost:8000"
+FASTAPI_URL = "http://fastapi_server:8000"
 
 # ========================================
 # 페이지 Views

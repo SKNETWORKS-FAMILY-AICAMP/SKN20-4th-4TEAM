@@ -1,0 +1,12 @@
+# Django 핵심
+Django>=4.2
+PyMySQL
+python-dotenv
+requests
+
+# 유틸리티
+beautifulsoup4
+lxml
+
+# 이미지나 폼 처리 (필요시)
+python-multipart

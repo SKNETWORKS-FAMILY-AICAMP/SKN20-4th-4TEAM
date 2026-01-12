@@ -13,11 +13,11 @@ uvicorn
 pydantic
 
 # Database / auth
-mysqlclient
+#mysqlclient
 PyMySQL
 SQLAlchemy
-passlib[bcrypt]
-bcrypt
+passlib
+bcrypt==4.0.1
 
 # LangChain / LLM integrations
 langchain

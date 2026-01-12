@@ -28,5 +28,48 @@ fastapi
 uvicorn
 pydantic
 
-# ✅ 추가: 웹 검색
+# ✅ 추가: 웹 검색# Environment & Utilities
+python-dotenv
+requests
+beautifulsoup4
+lxml
+
+# Web Frameworks & Servers
+fastapi
+uvicorn
+pydantic
+jinja2
+aiofiles
+python-multipart
+
+# Database & Auth
+SQLAlchemy
+pymysql
+passlib
+bcrypt==4.0.1
+
+# LangChain & LLM
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-chroma
+langchain-text-splitters
+chromadb
+openai
 tavily-python
+
+# PDF & Tokenizers
+pypdf
+pymupdf
+tiktoken
+tavily-python
+SQLAlchemy
+passlib
+bcrypt==4.0.1
+python-multipart
+
+# 파일 처리 & 토크나이저
+pymupdf
+
+pymysql

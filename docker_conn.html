@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>챗봇 프로젝트 도커 연결 가이드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .role-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .role-button {
+            padding: 20px 40px;
+            font-size: 1.3em;
+            font-weight: bold;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            color: #667eea;
+        }
+        
+        .role-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .role-button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .role-section {
+            display: none;
+        }
+        
+        .role-section.active {
+            display: block;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .creator-section {
+            border-left: 5px solid #667eea;
+        }
+        
+        .user-section {
+            border-left: 5px solid #28a745;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-section h2 {
+            color: #28a745;
+        }
+        
+        .section h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .code-header {
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            margin-bottom: -5px;
+        }
+        
+        .command {
+            background: #1e1e1e;
+            color: #4ec9b0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 4px solid #4ec9b0;
+        }
+        
+        .checklist {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .checklist-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+        
+        .checklist-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .checklist-item strong {
+            color: #667eea;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .user-step-number {
+            background: #28a745;
+        }
+        
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .user-section th {
+            background: #28a745;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .big-warning {
+            background: #f8d7da;
+            border: 3px solid #dc3545;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        
+        .big-success {
+            background: #d4edda;
+            border: 3px solid #28a745;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐳 챗봇 프로젝트 도커라이징 완전 가이드</h1>
+            <p>Django + MySQL + Docker + GitHub 환경 구축 완벽 정리</p>
+        </header>
+        
+        <div class="role-selector">
+            <button class="role-button active" onclick="showRole('creator')">
+                👨‍💻 도커 이미지 만드는 사람
+            </button>
+            <button class="role-button" onclick="showRole('user')">
+                👥 GitHub에서 받아서 쓰는 사람
+            </button>
+        </div>
+        
+        <div class="content">
+            <!-- 도커 만드는 사람 섹션 -->
+            <div id="creator-role" class="role-section active">
+                <div class="big-warning">
+                    <strong>🎯 당신의 역할:</strong> 프로젝트를 도커 이미지로 만들어서 GitHub에 업로드하는 사람<br>
+                    <strong>📦 최종 산출물:</strong> GitHub Repository + Dockerfile + 설정 파일들
+                </div>
+                
+                <!-- 섹션 1: 사전 준비 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">📋</span> 1. 사전 준비사항</h2>
+                    
+                    <div class="checklist-item">
+                        <strong>✅ Docker Desktop 설치</strong>
+                        <p>도커 이미지를 빌드하고 테스트하려면 Docker Desktop이 필요합니다</p>
+                        <ul>
+                            <li>Windows/Mac: https://www.docker.com/products/docker-desktop 에서 다운로드</li>
+                            <li>설치 후 Docker Desktop 실행</li>
+                            <li>터미널에서 <code>docker --version</code> 입력해서 설치 확인</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <strong>✅ GitHub 계정 및 Repository</strong>
+                        <ul>
+                            <li>GitHub 계정이 있어야 함 (없으면 https://github.com 에서 가입)</li>
+                            <li>프로젝트용 Repository 생성 (Public 또는 Private)</li>
+                            <li>팀원들을 Collaborator로 추가 (Private인 경우)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <strong>✅ Git 설치 및 설정</strong>
+                        <ul>
+                            <li>Git 설치: https://git-scm.com/downloads</li>
+                            <li>Git 사용자 설정 완료</li>
+                        </ul>
+                        <div class="command">git config --global user.name "Your Name"<br>git config --global user.email "your@email.com"</div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <strong>✅ 프로젝트 구조 확인</strong>
+                        <div class="code-block">
+                            <pre>프로젝트폴더/
+├── manage.py
+├── 프로젝트명/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── 앱폴더/
+├── requirements.txt  ← 여기 만들 것
+├── Dockerfile        ← 여기 만들 것
+├── .dockerignore     ← 여기 만들 것
+└── .gitignore        ← 여기 만들 것</pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 2: 핵심 파일 생성 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">📝</span> 2. 핵심 파일 생성</h2>
+                    
+                    <h3>📄 Dockerfile 만들기</h3>
+                    <div class="info">프로젝트 루트 폴더(manage.py가 있는 곳)에 생성</div>
+                    <div class="code-header">Dockerfile</div>
+                    <div class="code-block">
+                        <pre>FROM python:3.10-slim
+
+# 리눅스 패키지 설치 (DB 연결 필수 도구)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 라이브러리 설치
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 소스 복사 및 실행
+COPY . .
+CMD python $(find . -name manage.py) runserver 0.0.0.0:8000</pre>
+                    </div>
+                    
+                    <h3>📄 requirements.txt 만들기</h3>
+                    <div class="info">현재 프로젝트에서 사용하는 모든 라이브러리 목록</div>
+                    <div class="code-header">requirements.txt</div>
+                    <div class="code-block">
+                        <pre>django
+pymysql
+cryptography
+# 아래에 팀에서 사용하는 추가 라이브러리 작성
+# 예: djangorestframework, requests 등</pre>
+                    </div>
+                    <div class="warning">
+                        <strong>💡 자동 생성 방법:</strong>
+                        <div class="command">pip freeze > requirements.txt</div>
+                        단, 불필요한 패키지가 포함될 수 있으니 확인 후 정리하세요!
+                    </div>
+                    
+                    <h3>📄 .dockerignore 만들기</h3>
+                    <div class="info">도커 이미지에 포함하지 않을 파일 목록</div>
+                    <div class="code-header">.dockerignore</div>
+                    <div class="code-block">
+                        <pre>__pycache__/
+*.pyc
+venv/
+.git/
+*.sqlite3
+.env
+.DS_Store
+*.log</pre>
+                    </div>
+                    
+                    <h3>📄 .gitignore 만들기</h3>
+                    <div class="info">GitHub에 업로드하지 않을 파일 목록</div>
+                    <div class="code-header">.gitignore</div>
+                    <div class="code-block">
+                        <pre>__pycache__/
+*.pyc
+venv/
+*.sqlite3
+.env
+db.sqlite3
+*.log
+.DS_Store
+*.tar</pre>
+                    </div>
+                </div>
+                
+                <!-- 섹션 3: 코드 수정 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">✏️</span> 3. 필수 코드 수정</h2>
+                    
+                    <h3>settings.py 수정</h3>
+                    <div class="warning">
+                        <strong>⚠️ 중요:</strong> DB_HOST와 PASSWORD를 환경변수로 받도록 설정해야 팀원들이 자신의 DB에 연결할 수 있습니다
+                    </div>
+                    <div class="code-header">프로젝트명/settings.py</div>
+                    <div class="code-block">
+                        <pre>import os
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '데이터베이스명',  # 실제 DB명으로 수정
+        'USER': 'root',
+        'PASSWORD': os.environ.get('DB_PASSWORD', '기본비밀번호'),  # 환경변수로 받기
+        'HOST': os.environ.get('DB_HOST', 'localhost'),  # 환경변수로 받기
+        'PORT': '3306',
+    }
+}</pre>
+                    </div>
+                    
+                    <h3>__init__.py 수정</h3>
+                    <div class="code-header">프로젝트명/__init__.py</div>
+                    <div class="code-block">
+                        <pre>import pymysql
+pymysql.install_as_MySQLdb()</pre>
+                    </div>
+                    <div class="info">
+                        <strong>📍 파일 위치:</strong> manage.py가 있는 폴더 → 프로젝트명 폴더 → __init__.py
+                    </div>
+                </div>
+                
+                <!-- 섹션 4: GitHub에 업로드 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">🚀</span> 4. GitHub에 프로젝트 업로드</h2>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">1</span>
+                        <strong>Git 초기화 (처음만)</strong>
+                        <div class="command">git init</div>
+                        <p>프로젝트 폴더에서 실행</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">2</span>
+                        <strong>GitHub Repository 연결 (처음만)</strong>
+                        <div class="command">git remote add origin https://github.com/username/repository.git</div>
+                        <p><code>username</code>과 <code>repository</code>를 본인 것으로 변경</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">3</span>
+                        <strong>파일 추가</strong>
+                        <div class="command">git add .</div>
+                        <p>모든 변경사항을 스테이징 영역에 추가</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">4</span>
+                        <strong>커밋</strong>
+                        <div class="command">git commit -m "도커 설정 추가"</div>
+                        <p>의미있는 커밋 메시지 작성</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">5</span>
+                        <strong>GitHub에 업로드</strong>
+                        <div class="command">git push -u origin main</div>
+                        <p>또는 <code>git push -u origin master</code> (Repository 기본 브랜치 확인)</p>
+                        <div class="warning" style="margin-top: 10px;">
+                            <strong>⚠️ 처음 push 시:</strong> GitHub 로그인 정보를 입력해야 합니다
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">6</span>
+                        <strong>업로드 확인</strong>
+                        <p>GitHub 웹사이트에서 Repository에 파일들이 올라갔는지 확인</p>
+                        <div class="success" style="margin-top: 10px;">
+                            ✅ Dockerfile, requirements.txt, .gitignore가 보이면 성공!
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 5: 팀원 안내 문서 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">📄</span> 5. 팀원들에게 전달할 README</h2>
+                    
+                    <div class="info">
+                        GitHub Repository에 README.md 파일을 만들어 아래 내용을 추가하세요
+                    </div>
+                    
+                    <div class="code-header">README.md</div>
+                    <div class="code-block">
+                        <pre># 챗봇 프로젝트 도커 실행 가이드
+
+## 📥 프로젝트 다운로드
+
+```bash
+git clone https://github.com/username/repository.git
+cd repository
+```
+
+## ✅ 사전 준비
+1. Docker Desktop 설치 및 실행
+   - https://www.docker.com/products/docker-desktop
+2. MySQL이 로컬에 설치되어 있어야 함
+3. 데이터베이스명: [실제DB명]
+
+## 🔧 MySQL 설정 (처음 한 번만)
+
+```sql
+mysql -u root -p
+CREATE DATABASE [실제DB명] DEFAULT CHARACTER SET utf8mb4;
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+FLUSH PRIVILEGES;
+exit;
+```
+
+## 🚀 도커 실행
+
+```bash
+# 1. 도커 이미지 빌드
+docker build -t chatbot-app .
+
+# 2. 도커 컨테이너 실행
+docker run -d -p 8000:8000 --name chatbot \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=본인의MySQL비밀번호 \
+  chatbot-app
+
+# 3. 로그 확인
+docker logs chatbot
+
+# 4. 브라우저에서 접속
+http://localhost:8000
+```
+
+## 🔧 자주 사용하는 명령어
+- 중지: `docker stop chatbot`
+- 시작: `docker start chatbot`
+- 재시작: `docker restart chatbot`
+- 삭제: `docker rm -f chatbot`
+
+## ❗ 문제 해결
+1. MySQL 접속 오류 → MySQL 서비스 실행 확인
+2. 비밀번호 오류 → DB_PASSWORD 확인 후 재실행
+3. 포트 충돌 → 기존 컨테이너 삭제 후 재실행</pre>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <strong>README.md를 GitHub에 추가하기</strong>
+                        <div class="command">git add README.md<br>git commit -m "README 추가"<br>git push</div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 6: 코드 수정 시 업데이트 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">🔄</span> 6. 코드 수정 시 GitHub 업데이트</h2>
+                    
+                    <div class="info">
+                        코드를 수정한 후 팀원들에게 공유하는 방법:
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">1</span>
+                        <strong>변경사항 확인</strong>
+                        <div class="command">git status</div>
+                        <p>어떤 파일이 수정되었는지 확인</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">2</span>
+                        <strong>변경사항 추가</strong>
+                        <div class="command">git add .</div>
+                        <p>특정 파일만: <code>git add 파일명</code></p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">3</span>
+                        <strong>커밋 및 푸시</strong>
+                        <div class="command">git commit -m "기능 추가: 설명"<br>git push</div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number">4</span>
+                        <strong>팀원들에게 공지</strong>
+                        <div class="success">
+                            📢 팀 채팅방에 공지:<br>
+                            - 코드 업데이트했습니다!<br>
+                            - <code>git pull</code> 후 도커 재빌드 해주세요<br>
+                            - 변경 사항: [간단한 설명]
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 7: 유용한 명령어 -->
+                <div class="section creator-section">
+                    <h2><span class="emoji">🛠️</span> 7. 유용한 명령어 모음</h2>
+                    
+                    <h3>Git 명령어</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>작업</th>
+                                <th>명령어</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>변경사항 확인</td>
+                                <td><code>git status</code></td>
+                            </tr>
+                            <tr>
+                                <td>커밋 히스토리 보기</td>
+                                <td><code>git log</code></td>
+                            </tr>
+                            <tr>
+                                <td>원격 저장소 최신 상태 가져오기</td>
+                                <td><code>git pull</code></td>
+                            </tr>
+                            <tr>
+                                <td>브랜치 만들기</td>
+                                <td><code>git branch 브랜치명</code></td>
+                            </tr>
+                            <tr>
+                                <td>브랜치 전환</td>
+                                <td><code>git checkout 브랜치명</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Docker 명령어</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>작업</th>
+                                <th>명령어</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>빌드한 이미지 목록</td>
+                                <td><code>docker images</code></td>
+                            </tr>
+                            <tr>
+                                <td>이미지 삭제</td>
+                                <td><code>docker rmi 이미지명</code></td>
+                            </tr>
+                            <tr>
+                                <td>실행 중인 컨테이너</td>
+                                <td><code>docker ps</code></td>
+                            </tr>
+                            <tr>
+                                <td>모든 컨테이너</td>
+                                <td><code>docker ps -a</code></td>
+                            </tr>
+                            <tr>
+                                <td>컨테이너 강제 삭제</td>
+                                <td><code>docker rm -f 컨테이너명</code></td>
+                            </tr>
+                            <tr>
+                                <td>사용하지 않는 리소스 정리</td>
+                                <td><code>docker system prune -a</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 도커 받아서 쓰는 사람 섹션 -->
+            <div id="user-role" class="role-section">
+                <div class="big-success">
+                    <strong>🎯 당신의 역할:</strong> GitHub에서 프로젝트를 받아서 도커로 실행하는 사람<br>
+                    <strong>✨ 장점:</strong> 복잡한 설정 없이 명령어 몇 줄로 프로젝트 실행 가능!
+                </div>
+                
+                <!-- 섹션 1: 사전 준비 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">✅</span> 1. 사전 준비사항 체크</h2>
+                    
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>✅ Git 설치</strong>
+                            <ul>
+                                <li>Git 다운로드: https://git-scm.com/downloads</li>
+                                <li>설치 후 터미널에서 <code>git --version</code> 입력해서 확인</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <strong>✅ Docker Desktop 설치</strong>
+                            <ul>
+                                <li>Windows/Mac: https://www.docker.com/products/docker-desktop</li>
+                                <li>설치 후 Docker Desktop 실행 확인</li>
+                                <li>터미널에서 <code>docker --version</code> 입력해서 확인</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <strong>✅ MySQL 설치 및 실행</strong>
+                            <ul>
+                                <li>MySQL이 로컬 컴퓨터에 설치되어 있어야 함</li>
+                                <li>MySQL 서비스가 실행 중이어야 함</li>
+                                <li>본인의 MySQL root 비밀번호를 알고 있어야 함</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="checklist-item">
+                            <strong>✅ GitHub 접근 권한</strong>
+                            <ul>
+                                <li>팀원이 공유한 Repository 주소 확보</li>
+                                <li>Private Repository인 경우 Collaborator 권한 필요</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 2: MySQL 설정 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">🔧</span> 2. MySQL 설정 (한 번만 하면 됨)</h2>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">1</span>
+                        <strong>MySQL 접속</strong>
+                        <div class="command">mysql -u root -p</div>
+                        <p>비밀번호 입력</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">2</span>
+                        <strong>데이터베이스 생성</strong>
+                        <div class="command">CREATE DATABASE 데이터베이스명 DEFAULT CHARACTER SET utf8mb4;</div>
+                        <p>팀원에게 받은 데이터베이스명으로 생성</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">3</span>
+                        <strong>외부 접속 권한 부여</strong>
+                        <div class="command">GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';<br>FLUSH PRIVILEGES;<br>exit;</div>
+                        <p>도커 컨테이너가 MySQL에 접속할 수 있도록 허용</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">4</span>
+                        <strong>MySQL 서비스 재시작</strong>
+                        <p>Windows: services.msc → MySQL80 서비스 재시작</p>
+                        <p>Mac: System Preferences → MySQL → Restart</p>
+                    </div>
+                </div>
+                
+                <!-- 섹션 3: GitHub에서 프로젝트 받기 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">📥</span> 3. GitHub에서 프로젝트 받기</h2>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">1</span>
+                        <strong>작업할 폴더로 이동</strong>
+                        <div class="command">cd C:\Users\내이름\Projects</div>
+                        <p>Mac/Linux: <code>cd ~/Projects</code></p>
+                        <p>원하는 위치로 이동하세요</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">2</span>
+                        <strong>GitHub에서 Clone</strong>
+                        <div class="command">git clone https://github.com/username/repository.git</div>
+                        <p>팀원에게 받은 Repository 주소 사용</p>
+                        <div class="info" style="margin-top: 10px;">
+                            💡 Private Repository인 경우 GitHub 로그인 정보를 입력해야 합니다
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">3</span>
+                        <strong>프로젝트 폴더로 이동</strong>
+                        <div class="command">cd repository</div>
+                        <p><code>repository</code>를 실제 폴더명으로 변경</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">4</span>
+                        <strong>파일 확인</strong>
+                        <div class="command">dir</div>
+                        <p>Mac/Linux: <code>ls</code></p>
+                        <div class="success" style="margin-top: 10px;">
+                            ✅ Dockerfile, requirements.txt, manage.py가 보이면 성공!
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 4: 도커 빌드 및 실행 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">🚀</span> 4. 도커 이미지 빌드 및 실행</h2>
+                    
+                    <div class="warning">
+                        <strong>⚠️ 실행 전 필수 확인:</strong>
+                        <ul>
+                            <li>✅ 현재 위치가 프로젝트 폴더인가? (Dockerfile이 있는 곳)</li>
+                            <li>✅ Docker Desktop이 실행 중인가?</li>
+                            <li>✅ MySQL 서비스가 실행 중인가?</li>
+                            <li>✅ 데이터베이스가 생성되어 있는가?</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">1</span>
+                        <strong>도커 이미지 빌드</strong>
+                        <div class="command">docker build -t chatbot-app .</div>
+                        <div class="info" style="margin-top: 10px;">
+                            ⏱️ 빌드 시간: 처음에는 5-10분 소요<br>
+                            ✅ 완료 메시지: <code>Successfully built ...</code>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">2</span>
+                        <strong>도커 컨테이너 실행</strong>
+                        <div class="command">docker run -d -p 8000:8000 --name chatbot \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=본인의MySQL비밀번호 \
+  chatbot-app</div>
+                        <div class="warning" style="margin-top: 10px;">
+                            ⚠️ <code>본인의MySQL비밀번호</code> 부분을 실제 비밀번호로 변경하세요!
+                        </div>
+                    </div>
+                    
+                    <div class="info">
+                        <strong>🔍 명령어 설명:</strong>
+                        <ul>
+                            <li><code>-d</code>: 백그라운드 실행</li>
+                            <li><code>-p 8000:8000</code>: 포트 연결 (로컬 8000 → 컨테이너 8000)</li>
+                            <li><code>--name chatbot</code>: 컨테이너 이름 지정</li>
+                            <li><code>-e DB_HOST=...</code>: 환경변수 설정 (DB 주소)</li>
+                            <li><code>-e DB_PASSWORD=...</code>: 본인 MySQL 비밀번호</li>
+                            <li><code>chatbot-app</code>: 사용할 이미지 이름</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 섹션 5: 실행 확인 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">✔️</span> 5. 실행 확인 및 접속</h2>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">1</span>
+                        <strong>로그 확인</strong>
+                        <div class="command">docker logs chatbot</div>
+                        <div class="success" style="margin-top: 10px;">
+                            ✅ 성공 메시지: <code>Starting development server at http://0.0.0.0:8000/</code>
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">2</span>
+                        <strong>브라우저에서 접속</strong>
+                        <div class="command">http://localhost:8000</div>
+                        <p>웹 브라우저를 열고 위 주소로 접속</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">3</span>
+                        <strong>컨테이너 실행 상태 확인</strong>
+                        <div class="command">docker ps</div>
+                        <p>chatbot이 목록에 보이면 정상 실행 중</p>
+                    </div>
+                </div>
+                
+                <!-- 섹션 6: 코드 업데이트 받기 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">🔄</span> 6. 팀원이 코드 업데이트 했을 때</h2>
+                    
+                    <div class="info">
+                        팀원이 코드를 수정하고 GitHub에 업로드했다면:
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">1</span>
+                        <strong>기존 컨테이너 중지 및 삭제</strong>
+                        <div class="command">docker stop chatbot<br>docker rm chatbot</div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">2</span>
+                        <strong>최신 코드 받기</strong>
+                        <div class="command">git pull</div>
+                        <p>프로젝트 폴더에서 실행</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">3</span>
+                        <strong>기존 이미지 삭제 (선택사항)</strong>
+                        <div class="command">docker rmi chatbot-app</div>
+                        <p>용량 절약을 위해 기존 이미지 삭제</p>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <span class="step-number user-step-number">4</span>
+                        <strong>새로 빌드 및 실행</strong>
+                        <div class="command">docker build -t chatbot-app .<br><br>docker run -d -p 8000:8000 --name chatbot \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=본인의MySQL비밀번호 \
+  chatbot-app</div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 7: 자주 사용하는 명령어 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">💡</span> 7. 자주 사용하는 명령어</h2>
+                    
+                    <h3>도커 관련</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>작업</th>
+                                <th>명령어</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>컨테이너 중지</td>
+                                <td><code>docker stop chatbot</code></td>
+                            </tr>
+                            <tr>
+                                <td>컨테이너 시작</td>
+                                <td><code>docker start chatbot</code></td>
+                            </tr>
+                            <tr>
+                                <td>컨테이너 재시작</td>
+                                <td><code>docker restart chatbot</code></td>
+                            </tr>
+                            <tr>
+                                <td>실시간 로그 보기</td>
+                                <td><code>docker logs -f chatbot</code></td>
+                            </tr>
+                            <tr>
+                                <td>컨테이너 삭제</td>
+                                <td><code>docker rm -f chatbot</code></td>
+                            </tr>
+                            <tr>
+                                <td>이미지 삭제</td>
+                                <td><code>docker rmi chatbot-app</code></td>
+                            </tr>
+                            <tr>
+                                <td>모든 컨테이너 보기</td>
+                                <td><code>docker ps -a</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h3>Git 관련</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>작업</th>
+                                <th>명령어</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>최신 코드 받기</td>
+                                <td><code>git pull</code></td>
+                            </tr>
+                            <tr>
+                                <td>현재 상태 확인</td>
+                                <td><code>git status</code></td>
+                            </tr>
+                            <tr>
+                                <td>커밋 히스토리</td>
+                                <td><code>git log</code></td>
+                            </tr>
+                            <tr>
+                                <td>변경사항 취소</td>
+                                <td><code>git checkout -- 파일명</code></td>
+                            </tr>
+                            <tr>
+                                <td>원격 저장소 확인</td>
+                                <td><code>git remote -v</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 섹션 8: 문제 해결 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">🛠️</span> 8. 문제 해결 가이드</h2>
+                    
+                    <h3>❌ Can't connect to MySQL server</h3>
+                    <div class="warning">
+                        <strong>원인:</strong> 도커가 MySQL에 접속하지 못함
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>해결 1:</strong> MySQL 서비스 확인
+                            <p>Windows: services.msc → MySQL80 서비스 시작</p>
+                            <p>Mac: System Preferences → MySQL → Start</p>
+                        </div>
+                        <div class="checklist-item">
+                            <strong>해결 2:</strong> 방화벽 확인
+                            <p>Windows 방화벽이 3306 포트를 차단하고 있지 않은지 확인</p>
+                        </div>
+                        <div class="checklist-item">
+                            <strong>해결 3:</strong> 권한 재설정
+                            <div class="command">mysql -u root -p<br>GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';<br>FLUSH PRIVILEGES;</div>
+                        </div>
+                    </div>
+                    
+                    <h3>❌ Access denied for user 'root'</h3>
+                    <div class="warning">
+                        <strong>원인:</strong> 비밀번호가 틀림
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>해결:</strong> 비밀번호 확인 후 재실행
+                            <div class="command">docker rm -f chatbot<br>docker run -d -p 8000:8000 --name chatbot \<br>  -e DB_HOST=host.docker.internal \<br>  -e DB_PASSWORD=정확한비밀번호 \<br>  chatbot-app</div>
+                        </div>
+                    </div>
+                    
+                    <h3>❌ Port 8000 is already allocated</h3>
+                    <div class="warning">
+                        <strong>원인:</strong> 이미 같은 이름의 컨테이너가 실행 중
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>해결:</strong> 기존 컨테이너 삭제 후 재실행
+                            <div class="command">docker rm -f chatbot</div>
+                            <p>그 다음 다시 docker run 명령어 실행</p>
+                        </div>
+                    </div>
+                    
+                    <h3>❌ Unknown database</h3>
+                    <div class="warning">
+                        <strong>원인:</strong> 데이터베이스가 생성되지 않음
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>해결:</strong> MySQL에서 데이터베이스 생성
+                            <div class="command">mysql -u root -p<br>CREATE DATABASE 데이터베이스명 DEFAULT CHARACTER SET utf8mb4;</div>
+                        </div>
+                    </div>
+                    
+                    <h3>❌ git pull 오류</h3>
+                    <div class="warning">
+                        <strong>원인:</strong> 로컬에 수정한 파일이 있음
+                    </div>
+                    <div class="checklist">
+                        <div class="checklist-item">
+                            <strong>해결 1:</strong> 변경사항 임시 저장
+                            <div class="command">git stash<br>git pull<br>git stash pop</div>
+                        </div>
+                        <div class="checklist-item">
+                            <strong>해결 2:</strong> 변경사항 완전히 버리고 최신 코드 받기
+                            <div class="command">git reset --hard<br>git pull</div>
+                            <div class="warning" style="margin-top: 10px;">
+                                ⚠️ 이 방법은 로컬의 모든 변경사항을 삭제합니다!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 섹션 9: Mac/Linux 사용자 -->
+                <div class="section user-section">
+                    <h2><span class="emoji">🍎</span> 9. Mac/Linux 사용자 추가 설정</h2>
+                    
+                    <div class="info">
+                        <strong>Mac 사용자:</strong> DB_HOST는 동일하게 <code>host.docker.internal</code> 사용
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Linux 사용자:</strong> 실행 명령어가 약간 다릅니다
+                    </div>
+                    
+                    <div class="code-header">Linux 실행 명령어</div>
+                    <div class="command">docker run -d -p 8000:8000 --name chatbot \
+  --add-host=host.docker.internal:host-gateway \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PASSWORD=본인의MySQL비밀번호 \
+  chatbot-app</div>
+                </div>
+                
+                <!-- 성공 메시지 -->
+                <div class="big-success">
+                    <strong>🎉 축하합니다!</strong><br>
+                    이제 GitHub에서 프로젝트를 받아서 도커로 실행할 수 있습니다!<br>
+                    문제가 발생하면 위의 문제 해결 가이드를 참고하거나 팀원에게 문의하세요.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showRole(role) {
+            // 모든 섹션 숨기기
+            document.querySelectorAll('.role-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 모든 버튼 비활성화
+            document.querySelectorAll('.role-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 선택한 섹션 보이기
+            if (role === 'creator') {
+                document.getElementById('creator-role').classList.add('active');
+                event.target.classList.add('active');
+            } else {
+                document.getElementById('user-role').classList.add('active');
+                event.target.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
