@@ -4,7 +4,7 @@
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.10.19-blue?style=for-the-badge&logo=python)
+![Python](https://img.shields.io/badge/Python-3.12.x-blue?style=for-the-badge&logo=python)
 ![Django](https://img.shields.io/badge/Django-4.2-green?style=for-the-badge&logo=django)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-teal?style=for-the-badge&logo=fastapi)
 ![LangChain](https://img.shields.io/badge/LangChain-0.1-orange?style=for-the-badge)
@@ -474,6 +474,5 @@ Boss Baby AI: 캐릭터 기반 친근한 디자인
 - LangChain (RAG 파이프라인)
 - Tavily (웹 검색 API)
 - ChromaDB (벡터 데이터베이스)
-- 
 
 </div>
