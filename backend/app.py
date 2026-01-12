@@ -100,7 +100,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     source_type: str
-    calendar_suggestion: Optional[List[CalendarEvent]] = None
+    calendar_suggestion: Optional[List[CalendarEvent]] = None 
     session_id: Optional[int] = None
 
 # ========================================
@@ -826,26 +826,25 @@ async def chat(request: ChatRequest):
         if not question:
             raise HTTPException(status_code=400, detail="질문이 비어있습니다.")
 
-        print(f"\n{'='*60}")
-        print(f"[API 요청] {question}")
-        print(f"[API 요청] 히스토리 길이: {len(chat_history)}")
-        print(f"{'='*60}")
-
         session_id = request.session_id
         if session_id is None:
             session_id = create_chat_session()
-            print(f"[세션 생성] session_id={session_id}")
 
-        save_chat(
-            session_id=session_id,
-            role="user",
-            content=question
-        )
+        save_chat(session_id=session_id, role="user", content=question)
 
         answer, source_type, calendar_suggestion = multi_query_rag_with_qt(
             question, 
             chat_history
         )
+
+        # 🔍 디버깅 로그
+        print(f"\n{'='*60}")
+        print(f"[응답 생성]")
+        print(f"  answer: {answer[:100]}...")
+        print(f"  source_type: {source_type}")
+        print(f"  calendar_suggestion: {calendar_suggestion}")
+        print(f"  일정 개수: {len(calendar_suggestion) if calendar_suggestion else 0}")
+        print(f"{'='*60}\n")
 
         save_chat(
             session_id=session_id,
@@ -854,12 +853,19 @@ async def chat(request: ChatRequest):
             source_type=source_type
         )
 
-        return ChatResponse(
+        response = ChatResponse(
             answer=answer,
             source_type=source_type,
-            calendar_suggestion=calendar_suggestion,
+            calendar_suggestion=calendar_suggestion or [],  # ✅ None 방지
             session_id=session_id
         )
+
+        # 🔍 최종 JSON 확인
+        import json
+        response_json = response.model_dump()
+        print(f"[최종 JSON] {json.dumps(response_json, ensure_ascii=False, indent=2)}")
+
+        return response
 
     except Exception as e:
         print(f"[API 오류] {e}")

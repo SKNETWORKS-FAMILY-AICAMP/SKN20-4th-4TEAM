@@ -5,8 +5,10 @@ services:
     command: python manage.py runserver 0.0.0.0:8001
     ports:
       - "8001:8001"
+    depends_on:      # <--- 이 부분 추가
+      - db
     environment:
-      - DB_HOST=host.docker.internal
+      - DB_HOST=db
     env_file:
       - .env
     volumes:
@@ -24,3 +26,16 @@ services:
     volumes:
       - ./backend:/app
     restart: always
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "root1234"  # 사용자님의 비번
+      MYSQL_DATABASE: "startup_chatbot"      # 사용할 DB 이름
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql    # 데이터가 저장될 주머니
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

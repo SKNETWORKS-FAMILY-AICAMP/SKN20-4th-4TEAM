@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 DB_USER = "root"
 DB_PASSWORD = "root1234"
-DB_HOST = "host.docker.internal"
+DB_HOST = "db"
 DB_PORT = 3306
 DB_NAME = "startup_chatbot"
 

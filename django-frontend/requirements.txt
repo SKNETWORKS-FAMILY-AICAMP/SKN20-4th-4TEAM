@@ -10,3 +10,6 @@ lxml
 
 # 이미지나 폼 처리 (필요시)
 python-multipart
+
+cryptography
+pymysql

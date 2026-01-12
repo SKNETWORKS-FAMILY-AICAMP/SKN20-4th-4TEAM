@@ -40,3 +40,4 @@ django-frontend/db.sqlite3
 
 /chroma_startup_all
 chunked_documents.pkl
+mysql_data

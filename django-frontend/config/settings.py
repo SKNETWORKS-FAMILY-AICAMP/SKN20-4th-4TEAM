@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'startup_chatbot',
         'USER': 'root',
         'PASSWORD': 'root1234',  # ⚠️ 조원 비밀번호에 맞게
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'HOST': 'db',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
