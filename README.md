@@ -330,6 +330,18 @@ SKN20-4th-4TEAM/
 - Boss Baby 로고
 - 탭 전환 UI
 - 실시간 유효성 검증
+<table>
+<tr>
+  <td align="center" width="50%">
+    <img src="img/첫화면.png" width="100%"><br>
+    <sub><b>데이터 출처 (Kaggle)</b></sub>
+  </td>
+  <td align="center" width="50%">
+    <img src="img/회원가입창.png" width="30%"><br>
+    <sub><b>결측치 확인</b></sub>
+  </td>
+</tr>
+</table>
 
 ### 2. 채팅 메인
 - Boss Baby 캐릭터 (우측 하단)
