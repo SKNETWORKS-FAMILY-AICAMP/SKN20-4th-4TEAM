@@ -334,11 +334,11 @@ SKN20-4th-4TEAM/
 <tr>
   <td align="center" width="50%">
     <img src="img/첫화면.png" width="100%"><br>
-    <sub><b>데이터 출처 (Kaggle)</b></sub>
+    <sub><b>첫화면</b></sub>
   </td>
   <td align="center" width="50%">
-    <img src="img/회원가입창.png" width="30%"><br>
-    <sub><b>결측치 확인</b></sub>
+    <img src="img/회원가입창.png" width="100%"><br>
+    <sub><b>회원가입창</b></sub>
   </td>
 </tr>
 </table>
