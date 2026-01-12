@@ -352,6 +352,18 @@ SKN20-4th-4TEAM/
 - 로딩 인디케이터 (타이핑 애니메이션)
 - 자동 스크롤
 - **일정 자동 추출**: AI가 답변에서 날짜를 감지하여 캘린더 일정 제안
+<table>
+<tr>
+  <td align="center" width="50%">
+    <img src="img/채팅.png" width="100%"><br>
+    <sub><b>채팅화면</b></sub>
+  </td>
+  <td align="center" width="50%">
+    <img src="img/채팅기록.png" width="100%"><br>
+    <sub><b>채팅기록</b></sub>
+  </td>
+</tr>
+</table>
 
 ### 3. 캘린더 일정 관리
 - **월간 캘린더**: 42칸 그리드 (6주)
@@ -362,6 +374,18 @@ SKN20-4th-4TEAM/
 - **일정 관리 버튼**: 완료/삭제
 - **월 이동**: 이전/다음 달 네비게이션
 - **"오늘" 버튼**: 현재 월로 이동
+<table>
+<tr>
+  <td align="center" width="50%">
+    <img src="img/캘린더채팅.png" width="100%"><br>
+    <sub><b>캘린더에 추가</b></sub>
+  </td>
+  <td align="center" width="50%">
+    <img src="img/캘린더.png" width="70%"><br>
+    <sub><b>캘린더 </b></sub>
+  </td>
+</tr>
+</table>
 
 ### 4. 사업계획서 관리
 - **목록 화면**: 카드형 레이아웃, 완성도 바
@@ -371,6 +395,34 @@ SKN20-4th-4TEAM/
   - 5개 점수 카드 (투자매력도, 시장성, 실현가능성, 차별성, 완성도)
   - 8개 분석 섹션 (강점, 약점, 리스크, 개선 제안)
   - 탭 UI (단기/중기/장기 로드맵)
+<table>
+<tr>
+  <td align="center" width="33%">
+    <img src="img/사업계획서작성.png" width="100%"><br>
+    <sub><b>사업계획서작성</b></sub>
+  </td>
+  <td align="center" width="33%">
+    <img src="img/사업계획서.png" width="100%"><br>
+    <sub><b>사업계획서</b></sub>
+  </td>
+  <td align="center" width="33%">
+    <img src="img/분석결과.png" width="100%"><br>
+    <sub><b>분석결과</b></sub>
+  </td>
+</tr>
+</table>
+<table>
+<tr>
+  <td align="center" width="50%">
+    <img src="img/개선제안.png" width="100%"><br>
+    <sub><b>개선사안제안</b></sub>
+  </td>
+  <td align="center" width="50%">
+    <img src="img/AI전문가분석결과.png" width="100%"><br>
+    <sub><b>AI전문가분석결과</b></sub>
+  </td>
+</tr>
+</table>
 
 ### 5. 마이페이지
 - 통계 카드 (총 상담 수, 사업계획서 수, 일정 수)
@@ -378,12 +430,14 @@ SKN20-4th-4TEAM/
 - 최근 사업계획서 목록
 - 최근 상담 목록
 - 다가오는 일정 미리보기
-
-### 6. 채팅 기록
-- 최근 50개 메시지 표시
-- 시간순 정렬
-- 출처 및 응답 시간 표시
-- 세션별 구분
+<table>
+<tr>
+  <td align="center" width="50%">
+    <img src="img/개인정보.png" width="100%"><br>
+    <sub><b>개인정보</b></sub>
+  </td>
+</tr>
+</table>
 
 ---
 
@@ -487,4 +541,29 @@ Boss Baby AI: 캐릭터 기반 친근한 디자인
 - Tavily (웹 검색 API)
 - ChromaDB (벡터 데이터베이스)
 
+---
+
+## 💬 한 줄 회고
+
+> #### 김태빈
+> UI,UX구현과 백엔드 연결을 경험해보면서 django와 fastapi에 대해 스스로 발전하는 좋은 시간이었습니다.
+---
+
+> #### 정래원
+> 도커로 컨테이너끼리 통신하는 거 실습하면서 DB 연결 원리 확실히 이해했고, 배포 직전까지 경험봤습니다!
+
+---
+
+> #### 최소영
+> 챗봇 RAG 구성에서 직접 실제 배포 가능한 단계까지 구현해보면서 전체적인 과정을 직접해 볼 수 있어서 좋은 경험이었습니다.
+
+---
+
+> #### 최유정
+> django에 대해서 많이 공부해보면서 백엔드나 서버관련해서 많이 공부가 되었고 DB연결에 대해 학습 할 수 있었던거 같습니다.
+
+---
+
 </div>
+
+
